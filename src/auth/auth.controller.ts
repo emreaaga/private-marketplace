@@ -1,6 +1,9 @@
 import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
 import type { Response } from 'express';
-import { REFRESH_COOKIE_OPTIONS } from 'src/common/constants/auth.constants';
+import {
+  REFRESH_COOKIE_DELETE,
+  REFRESH_COOKIE_OPTIONS,
+} from 'src/common/constants/auth.constants';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 
@@ -26,5 +29,13 @@ export class AuthController {
     res.cookie('refresh_token', tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
 
     return { message: 'Successful login.', accessToken: tokens.accessToken };
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  logout(@Res({ passthrough: true }) res: Response): object {
+    res.clearCookie('refresh_token', REFRESH_COOKIE_DELETE);
+
+    return { message: 'Successful logout.' };
   }
 }
