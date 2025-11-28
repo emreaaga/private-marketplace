@@ -7,6 +7,7 @@ import { PasswordService, TokenService } from 'src/common/services';
 import { AuthRepository } from './auth.repository';
 import { LoginDto, RegisterDto } from './dto';
 import { CreatedUser } from './dto/types/user.types';
+import { LoginTokens } from './dto/types';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +33,7 @@ export class AuthService {
     return newUser;
   }
 
-  async login(dto: LoginDto): Promise<object> {
+  async login(dto: LoginDto): Promise<LoginTokens> {
     const user = await this.authRepository.findUserByEmail(dto.email);
 
     if (!user) throw new BadRequestException('Email or password is wrong');

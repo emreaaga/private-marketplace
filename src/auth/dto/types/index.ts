@@ -1,1 +1,1 @@
-export type { JwtAccessToken, JwtRefreshToken } from './jwt.types';
+export type { JwtAccessToken, JwtRefreshToken, LoginTokens } from './jwt.types';

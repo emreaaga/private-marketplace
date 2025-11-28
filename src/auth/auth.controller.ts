@@ -1,4 +1,6 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import type { Response } from 'express';
+import { REFRESH_COOKIE_OPTIONS } from 'src/common/constants/auth.constants';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
 
@@ -15,9 +17,14 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() dto: LoginDto): Promise<object> {
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<object> {
     const tokens = await this.authService.login(dto);
 
-    return { message: 'Successful login.', tokens };
+    res.cookie('refresh_token', tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
+
+    return { message: 'Successful login.', accessToken: tokens.accessToken };
   }
 }

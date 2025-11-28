@@ -5,3 +5,8 @@ export type JwtRefreshToken = {
 export interface JwtAccessToken extends JwtRefreshToken {
   email: string;
 }
+
+export type LoginTokens = {
+  accessToken: string;
+  refreshToken: string;
+};
