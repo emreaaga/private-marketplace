@@ -9,7 +9,7 @@ import * as schema from './schema';
 
 @Injectable()
 export class DbService implements OnModuleDestroy {
-  public readonly db: NodePgDatabase<typeof schema>;
+  public readonly client: NodePgDatabase<typeof schema>;
   private readonly pool: Pool;
 
   constructor(private readonly config: ConfigService) {
@@ -19,7 +19,7 @@ export class DbService implements OnModuleDestroy {
 
     this.pool = new Pool({ connectionString });
 
-    this.db = drizzle(this.pool, { schema });
+    this.client = drizzle(this.pool, { schema });
     console.log('✔ DB connected');
   }
 
