@@ -16,8 +16,8 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   async login(@Body() dto: LoginDto): Promise<object> {
-    await this.authService.login(dto);
+    const tokens = await this.authService.login(dto);
 
-    return { message: 'Successful login.' };
+    return { message: 'Successful login.', tokens };
   }
 }

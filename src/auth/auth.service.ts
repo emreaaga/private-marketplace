@@ -3,7 +3,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { PasswordService } from 'src/common/services/password.service';
+import { PasswordService, TokenService } from 'src/common/services';
 import { AuthRepository } from './auth.repository';
 import { LoginDto, RegisterDto } from './dto';
 import { CreatedUser } from './dto/types/user.types';
@@ -11,8 +11,9 @@ import { CreatedUser } from './dto/types/user.types';
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly passwordService: PasswordService,
     private readonly authRepository: AuthRepository,
+    private readonly passwordService: PasswordService,
+    private readonly tokenService: TokenService,
   ) {}
 
   async register(dto: RegisterDto): Promise<CreatedUser> {
@@ -31,7 +32,7 @@ export class AuthService {
     return newUser;
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto): Promise<object> {
     const user = await this.authRepository.findUserByEmail(dto.email);
 
     if (!user) throw new BadRequestException('Email or password is wrong');
@@ -42,5 +43,16 @@ export class AuthService {
     );
 
     if (!result) throw new BadRequestException('Email or password is wrong');
+
+    const accessPayload = { sub: user.id, email: user.email };
+    const refreshPayload = { sub: user.id };
+
+    const accessToken =
+      await this.tokenService.generateAccessToken(accessPayload);
+
+    const refreshToken =
+      await this.tokenService.generateRefreshToken(refreshPayload);
+
+    return { accessToken, refreshToken };
   }
 }

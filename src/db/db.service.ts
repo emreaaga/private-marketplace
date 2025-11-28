@@ -13,9 +13,7 @@ export class DbService implements OnModuleDestroy {
   private readonly pool: Pool;
 
   constructor(private readonly config: ConfigService) {
-    const connectionString = this.config.get<string>('DATABASE_URL');
-
-    if (!connectionString) throw new Error('DATABASE_URL is not defined!');
+    const connectionString = this.config.getOrThrow<string>('DATABASE_URL');
 
     this.pool = new Pool({ connectionString });
 

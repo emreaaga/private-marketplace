@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PasswordService } from './services/password.service';
+import { PasswordService, TokenService } from './services';
 
 @Module({
-  providers: [PasswordService],
-  exports: [PasswordService],
+  providers: [PasswordService, TokenService],
+  exports: [PasswordService, TokenService],
 })
 export class CommonModule {}
