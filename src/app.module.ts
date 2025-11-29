@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
 import { DbModule } from './db/db.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { DbModule } from './db/db.module';
     JwtModule.register({ global: true }),
     DbModule,
     AuthModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
