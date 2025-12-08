@@ -7,15 +7,18 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 import { UpdateRoleDto, UpdateStatusDto } from './dto';
 import { UsersService } from './users.service';
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   //Must add pagination for list of users
+  @UseGuards(AccessTokenGuard)
   @Get()
   @HttpCode(200)
   async findAll(): Promise<object> {
@@ -23,6 +26,7 @@ export class UsersController {
     return { message: 'Paginated list of users.', users };
   }
 
+  @UseGuards(AccessTokenGuard)
   @Get(':id')
   @HttpCode(200)
   async findOne(@Param('id', ParseIntPipe) id: number) {
@@ -30,6 +34,7 @@ export class UsersController {
     return { message: 'Current user', user };
   }
 
+  @UseGuards(AccessTokenGuard)
   @Delete(':id')
   @HttpCode(200)
   async deleteUser(@Param('id', ParseIntPipe) id: number) {
@@ -37,6 +42,7 @@ export class UsersController {
     return { message: 'User deleted.' };
   }
 
+  @UseGuards(AccessTokenGuard)
   @Patch(':id/status')
   @HttpCode(200)
   async updateStatus(
@@ -47,6 +53,7 @@ export class UsersController {
     return { message: 'Changed user status.' };
   }
 
+  @UseGuards(AccessTokenGuard)
   @Patch(':id/role')
   @HttpCode(200)
   async updateRole(

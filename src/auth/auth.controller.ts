@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res, Req } from '@nestjs/common';
 import type { Response } from 'express';
 import {
   REFRESH_COOKIE_DELETE,
@@ -6,6 +6,7 @@ import {
 } from 'src/common/constants/auth.constants';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto';
+import type { RefreshTokenRequest } from './dto/types';
 
 @Controller('auth')
 export class AuthController {
@@ -37,5 +38,13 @@ export class AuthController {
     res.clearCookie('refresh_token', REFRESH_COOKIE_DELETE);
 
     return { message: 'Successful logout.' };
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  async refresh(@Req() request: RefreshTokenRequest): Promise<object> {
+    const refreshToken = request.cookies.refresh_token;
+    const accessToken = await this.authService.refreshToken(refreshToken);
+    return { message: 'Refresh token endpoint', accessToken };
   }
 }

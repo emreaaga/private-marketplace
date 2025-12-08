@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PasswordService, TokenService } from 'src/common/services';
 import { AuthRepository } from './auth.repository';
@@ -45,7 +46,7 @@ export class AuthService {
 
     if (!result) throw new BadRequestException('Email or password is wrong');
 
-    const accessPayload = { sub: user.id, email: user.email };
+    const accessPayload = { sub: user.id, role: user.role };
     const refreshPayload = { sub: user.id };
 
     const accessToken =
@@ -55,5 +56,23 @@ export class AuthService {
       await this.tokenService.generateRefreshToken(refreshPayload);
 
     return { accessToken, refreshToken };
+  }
+
+  async refreshToken(refreshToken: string): Promise<string> {
+    try {
+      const payload = await this.tokenService.verifyRefreshToken(refreshToken);
+
+      const user = await this.authRepository.findUserById(payload.sub);
+      if (!user) throw new UnauthorizedException('User not found');
+
+      const accessPayload = { sub: user.id, role: user.role };
+
+      const newAccessToken =
+        await this.tokenService.generateAccessToken(accessPayload);
+
+      return newAccessToken;
+    } catch {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
   }
 }

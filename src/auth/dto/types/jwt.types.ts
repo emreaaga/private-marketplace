@@ -1,12 +1,18 @@
-export type JwtRefreshToken = {
+import type { Request } from 'express';
+
+export interface JwtRefreshToken {
   sub: number;
-};
+}
 
 export interface JwtAccessToken extends JwtRefreshToken {
-  email: string;
+  role: string;
 }
 
 export type LoginTokens = {
   accessToken: string;
   refreshToken: string;
 };
+
+export interface RefreshTokenRequest extends Request {
+  cookies: Record<string, string>;
+}

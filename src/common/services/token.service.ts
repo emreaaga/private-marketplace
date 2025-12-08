@@ -46,4 +46,20 @@ export class TokenService {
 
     return refreshToken;
   }
+
+  async verifyAccessToken(token: string): Promise<JwtAccessToken> {
+    const payload = await this.jwtService.verifyAsync<JwtAccessToken>(token, {
+      secret: this.accessSecret,
+    });
+
+    return payload;
+  }
+
+  async verifyRefreshToken(token: string) {
+    const payload = await this.jwtService.verifyAsync<JwtRefreshToken>(token, {
+      secret: this.refreshSecret,
+    });
+
+    return payload;
+  }
 }
