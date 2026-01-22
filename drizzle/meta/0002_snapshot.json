@@ -1,6 +1,6 @@
 {
-  "id": "3847c955-f254-4754-889e-7ac506c0017f",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "f6d34d26-eb67-4c30-a75a-7d69adf37fc4",
+  "prevId": "c488325c-1265-4e31-81f2-f2a995d68c1d",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -192,6 +192,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "city": {
+          "name": "city",
+          "type": "varchar(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "is_active": {
           "name": "is_active",
           "type": "boolean",
@@ -320,12 +326,6 @@
           "name": "pricing_type",
           "type": "pricing_type",
           "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "varchar(150)",
           "primaryKey": false,
           "notNull": true
         },

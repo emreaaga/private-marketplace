@@ -1,9 +1,8 @@
 import { IsEnum } from 'class-validator';
 
-enum UserRole {
+export enum UserRole {
   ADMIN = 'admin',
-  USER = 'user',
-  MANAGER = 'manager',
+  COMPANY_OWNER = 'company_owner',
 }
 
 export class UpdateRoleDto {

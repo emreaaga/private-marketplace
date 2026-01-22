@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DbService } from 'src/db/db.service';
@@ -8,17 +9,20 @@ import { CreatedUser, UserByEmail, UserById } from './dto/types/user.types';
 export class AuthRepository {
   constructor(private readonly db: DbService) {}
 
-  async createUser(
-    name: string,
-    email: string,
-    password_hash: string,
-  ): Promise<CreatedUser> {
-    const [user] = await this.db.client
-      .insert(usersTable)
-      .values({ name, email, password_hash })
-      .returning({ id: usersTable.id, email: usersTable.email });
-
-    return user;
+  createUser(
+    _name: string,
+    _email: string,
+    _password_hash: string,
+  ): CreatedUser {
+    // const [user] = await this.db.client
+    //   .insert(usersTable)
+    //   .values({ name, email, password_hash, company_id: 1 })
+    //   .returning({ id: usersTable.id, email: usersTable.email });
+    const newUser = {
+      id: 1,
+      email: 'test@gmail.com',
+    };
+    return newUser;
   }
 
   async findUserByEmail(email: string): Promise<UserByEmail | undefined> {

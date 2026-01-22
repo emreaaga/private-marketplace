@@ -3,24 +3,31 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
   UseGuards,
+  Post,
 } from '@nestjs/common';
 import { UpdateRoleDto, UpdateStatusDto } from './dto';
 import { UsersService } from './users.service';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  //Must add pagination for list of users
+  @UseGuards(AccessTokenGuard)
+  @Post()
+  async create(@Body() dto: CreateUserDto): Promise<object> {
+    await this.usersService.create(dto);
+    return { message: 'Successfully create user.' };
+  }
+
+  //TODO Must add pagination for list of users
   @UseGuards(AccessTokenGuard)
   @Get()
-  @HttpCode(200)
   async findAll(): Promise<object> {
     const users = await this.usersService.findAll();
     return { message: 'Paginated list of users.', users };
@@ -28,7 +35,6 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @Get(':id')
-  @HttpCode(200)
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOne(id);
     return { message: 'Current user', user };
@@ -36,7 +42,6 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @Delete(':id')
-  @HttpCode(200)
   async deleteUser(@Param('id', ParseIntPipe) id: number) {
     await this.usersService.deleteUser(id);
     return { message: 'User deleted.' };
@@ -44,7 +49,6 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @Patch(':id/status')
-  @HttpCode(200)
   async updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateStatusDto,
@@ -55,7 +59,6 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @Patch(':id/role')
-  @HttpCode(200)
   async updateRole(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateRoleDto,

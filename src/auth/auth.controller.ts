@@ -12,11 +12,12 @@ import type { RefreshTokenRequest } from './dto/types';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // Временно отключен, в будущем нужно будет включить
   @Post('register')
   @HttpCode(201)
   async register(@Body() dto: RegisterDto): Promise<object> {
-    const user = await this.authService.register(dto);
-    return { message: 'User registered successfully.', user };
+    await this.authService.register(dto);
+    return { message: 'User registered successfully.' };
   }
 
   @Post('login')
@@ -29,7 +30,7 @@ export class AuthController {
 
     res.cookie('refresh_token', tokens.refreshToken, REFRESH_COOKIE_OPTIONS);
 
-    return { message: 'Successful login.', accessToken: tokens.accessToken };
+    return { accessToken: tokens.accessToken, user: tokens.user };
   }
 
   @Post('logout')
@@ -42,9 +43,8 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(200)
-  async refresh(@Req() request: RefreshTokenRequest): Promise<object> {
+  async refresh(@Req() request: RefreshTokenRequest) {
     const refreshToken = request.cookies.refresh_token;
-    const accessToken = await this.authService.refreshToken(refreshToken);
-    return { message: 'Refresh token endpoint', accessToken };
+    return await this.authService.refreshToken(refreshToken);
   }
 }

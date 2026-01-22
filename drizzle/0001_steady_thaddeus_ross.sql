@@ -1,0 +1,1 @@
+ALTER TABLE "companies" ADD COLUMN "city" varchar(3) NOT NULL;

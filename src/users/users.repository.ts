@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DbService } from 'src/db/db.service';
 import { usersTable } from 'src/db/schema';
+import { companiesTable } from 'src/db/schema';
+import { CreateUser } from './dto/types/create-user.types';
 
 type UserStatuses = 'pending' | 'active' | 'blocked';
-type UserRoles = 'admin' | 'user' | 'manager';
+type UserRoles = 'admin' | 'company_owner';
 
 @Injectable()
 export class UsersRepository {
@@ -14,14 +16,36 @@ export class UsersRepository {
     const users = await this.db.client
       .select({
         id: usersTable.id,
+        company_name: companiesTable.name,
+        company_type: companiesTable.type,
         name: usersTable.name,
         email: usersTable.email,
         role: usersTable.role,
         status: usersTable.status,
         created_at: usersTable.created_at,
       })
-      .from(usersTable);
+      .from(usersTable)
+      .leftJoin(companiesTable, eq(usersTable.company_id, companiesTable.id));
+
     return users;
+  }
+
+  // Есть ошибка что company_id нету
+  async create(dto: CreateUser) {
+    await this.db.client.insert(usersTable).values({
+      company_id: dto.company_id,
+      name: dto.name,
+      surname: dto.surname,
+      email: dto.email,
+      password_hash: dto.password,
+      country: dto.country,
+      city: dto.city,
+      district: dto.district,
+      address_line: dto.address_line,
+      phone_country_code: dto.phone_country_code,
+      phone_number: dto.phone_number,
+      role: dto.role,
+    });
   }
 
   async oneUser(id: number) {

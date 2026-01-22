@@ -7,8 +7,7 @@ import {
 import { PasswordService, TokenService } from 'src/common/services';
 import { AuthRepository } from './auth.repository';
 import { LoginDto, RegisterDto } from './dto';
-import { CreatedUser } from './dto/types/user.types';
-import { LoginTokens } from './dto/types';
+// import { LoginTokens } from './dto/types';
 
 @Injectable()
 export class AuthService {
@@ -18,23 +17,21 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<CreatedUser> {
+  async register(dto: RegisterDto) {
     const user = await this.authRepository.findUserByEmail(dto.email);
 
     if (user) throw new ConflictException('This email is already registered.');
 
     const password_hash = await this.passwordService.hashPassword(dto.password);
 
-    const newUser = await this.authRepository.createUser(
-      dto.name,
-      dto.email,
-      password_hash,
-    );
-
-    return newUser;
+    this.authRepository.createUser(dto.name, dto.email, password_hash);
   }
 
-  async login(dto: LoginDto): Promise<LoginTokens> {
+  async login(dto: LoginDto): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    user: { id: number; role: string };
+  }> {
     const user = await this.authRepository.findUserByEmail(dto.email);
 
     if (!user) throw new BadRequestException('Email or password is wrong');
@@ -55,10 +52,20 @@ export class AuthService {
     const refreshToken =
       await this.tokenService.generateRefreshToken(refreshPayload);
 
-    return { accessToken, refreshToken };
+    return {
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        role: user.role,
+      },
+    };
   }
 
-  async refreshToken(refreshToken: string): Promise<string> {
+  async refreshToken(refreshToken: string): Promise<{
+    accessToken: string;
+    user: { id: number; role: string };
+  }> {
     try {
       const payload = await this.tokenService.verifyRefreshToken(refreshToken);
 
@@ -67,10 +74,16 @@ export class AuthService {
 
       const accessPayload = { sub: user.id, role: user.role };
 
-      const newAccessToken =
+      const accessToken =
         await this.tokenService.generateAccessToken(accessPayload);
 
-      return newAccessToken;
+      return {
+        accessToken,
+        user: {
+          id: user.id,
+          role: user.role,
+        },
+      };
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }
