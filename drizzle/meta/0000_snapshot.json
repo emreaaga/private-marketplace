@@ -1,5 +1,5 @@
 {
-  "id": "3847c955-f254-4754-889e-7ac506c0017f",
+  "id": "6ee0cfd9-d476-4d11-bd3d-6228b217cbc5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -192,6 +192,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "city": {
+          "name": "city",
+          "type": "varchar(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "is_active": {
           "name": "is_active",
           "type": "boolean",
@@ -323,12 +329,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "name": {
-          "name": "name",
-          "type": "varchar(150)",
-          "primaryKey": false,
-          "notNull": true
-        },
         "price": {
           "name": "price",
           "type": "numeric(10, 2)",
@@ -372,8 +372,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.dispatches": {
-      "name": "dispatches",
+    "public.shipments": {
+      "name": "shipments",
       "schema": "",
       "columns": {
         "id": {
@@ -383,7 +383,7 @@
           "notNull": true,
           "identity": {
             "type": "always",
-            "name": "dispatches_id_seq",
+            "name": "shipments_id_seq",
             "schema": "public",
             "increment": "1",
             "startWith": "1",
@@ -419,7 +419,7 @@
         },
         "status": {
           "name": "status",
-          "type": "dispatch_status",
+          "type": "shipment_status",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
@@ -435,9 +435,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "dispatches_company_id_companies_id_fk": {
-          "name": "dispatches_company_id_companies_id_fk",
-          "tableFrom": "dispatches",
+        "shipments_company_id_companies_id_fk": {
+          "name": "shipments_company_id_companies_id_fk",
+          "tableFrom": "shipments",
           "tableTo": "companies",
           "columnsFrom": [
             "company_id"
@@ -448,9 +448,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "dispatches_flight_id_flights_id_fk": {
-          "name": "dispatches_flight_id_flights_id_fk",
-          "tableFrom": "dispatches",
+        "shipments_flight_id_flights_id_fk": {
+          "name": "shipments_flight_id_flights_id_fk",
+          "tableFrom": "shipments",
           "tableTo": "flights",
           "columnsFrom": [
             "flight_id"
@@ -513,19 +513,47 @@
           "primaryKey": false,
           "notNull": true
         },
-        "rate_per_kg": {
-          "name": "rate_per_kg",
+        "air_partner_id": {
+          "name": "air_partner_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sender_customs_id": {
+          "name": "sender_customs_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "receiver_customs_id": {
+          "name": "receiver_customs_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "air_kg_price": {
+          "name": "air_kg_price",
           "type": "numeric(8, 2)",
           "primaryKey": false,
           "notNull": true
         },
-        "status": {
-          "name": "status",
-          "type": "flight_status",
-          "typeSchema": "public",
+        "sender_customs_kg_price": {
+          "name": "sender_customs_kg_price",
+          "type": "numeric(8, 2)",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'planned'"
+          "notNull": true
+        },
+        "receiver_customs_kg_price": {
+          "name": "receiver_customs_kg_price",
+          "type": "numeric(8, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "loading_at": {
+          "name": "loading_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         },
         "departure_at": {
           "name": "departure_at",
@@ -539,6 +567,45 @@
           "primaryKey": false,
           "notNull": false
         },
+        "unloading_at": {
+          "name": "unloading_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "awb_number": {
+          "name": "awb_number",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "final_gross_weight_kg": {
+          "name": "final_gross_weight_kg",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "flight_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'planned'"
+        },
+        "is_paid": {
+          "name": "is_paid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "paid_at": {
+          "name": "paid_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -548,7 +615,47 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "flights_air_partner_id_companies_id_fk": {
+          "name": "flights_air_partner_id_companies_id_fk",
+          "tableFrom": "flights",
+          "tableTo": "companies",
+          "columnsFrom": [
+            "air_partner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "flights_sender_customs_id_companies_id_fk": {
+          "name": "flights_sender_customs_id_companies_id_fk",
+          "tableFrom": "flights",
+          "tableTo": "companies",
+          "columnsFrom": [
+            "sender_customs_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "flights_receiver_customs_id_companies_id_fk": {
+          "name": "flights_receiver_customs_id_companies_id_fk",
+          "tableFrom": "flights",
+          "tableTo": "companies",
+          "columnsFrom": [
+            "receiver_customs_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -576,8 +683,8 @@
             "cycle": false
           }
         },
-        "dispatch_id": {
-          "name": "dispatch_id",
+        "shipment_id": {
+          "name": "shipment_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -649,12 +756,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "orders_dispatch_id_dispatches_id_fk": {
-          "name": "orders_dispatch_id_dispatches_id_fk",
+        "orders_shipment_id_shipments_id_fk": {
+          "name": "orders_shipment_id_shipments_id_fk",
           "tableFrom": "orders",
-          "tableTo": "dispatches",
+          "tableTo": "shipments",
           "columnsFrom": [
-            "dispatch_id"
+            "shipment_id"
           ],
           "columnsTo": [
             "id"
@@ -782,6 +889,82 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
+    },
+    "public.flight_expenses": {
+      "name": "flight_expenses",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "flight_expenses_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "2147483647",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "flight_id": {
+          "name": "flight_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "flight_expense_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric(12, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "flight_expenses_flight_id_flights_id_fk": {
+          "name": "flight_expenses_flight_id_flights_id_fk",
+          "tableFrom": "flight_expenses",
+          "tableTo": "flights",
+          "columnsFrom": [
+            "flight_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -809,7 +992,8 @@
         "platform",
         "postal",
         "air_partner",
-        "customs_broker"
+        "customs_broker",
+        "airline"
       ]
     },
     "public.pricing_type": {
@@ -832,8 +1016,8 @@
         "penalty"
       ]
     },
-    "public.dispatch_status": {
-      "name": "dispatch_status",
+    "public.shipment_status": {
+      "name": "shipment_status",
       "schema": "public",
       "values": [
         "draft",
@@ -870,6 +1054,16 @@
       "values": [
         "clothes",
         "electronics"
+      ]
+    },
+    "public.flight_expense_type": {
+      "name": "flight_expense_type",
+      "schema": "public",
+      "values": [
+        "aircraft",
+        "customs",
+        "handling",
+        "other"
       ]
     }
   },

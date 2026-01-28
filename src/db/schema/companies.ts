@@ -10,13 +10,15 @@ import {
 import { usersTable } from './users';
 import { relations } from 'drizzle-orm';
 import { servicesTable } from './services';
-import { dispatchesTable } from './dispatches';
+import { shipmentsTable } from './shipments';
+import { flightsTable } from './flights';
 
 export const companyTypeEnum = pgEnum('company_type', [
   'platform',
   'postal',
   'air_partner',
   'customs_broker',
+  'airline',
 ]);
 
 export const companiesTable = pgTable('companies', {
@@ -38,5 +40,14 @@ export const companiesTable = pgTable('companies', {
 export const companiesRelations = relations(companiesTable, ({ many }) => ({
   users: many(usersTable),
   services: many(servicesTable),
-  dispatches: many(dispatchesTable),
+  shipments: many(shipmentsTable),
+  airPartnerFlights: many(flightsTable, {
+    relationName: 'airPartner',
+  }),
+  senderCustomsFlights: many(flightsTable, {
+    relationName: 'senderCustoms',
+  }),
+  receiverCustomsFlights: many(flightsTable, {
+    relationName: 'receiverCustoms',
+  }),
 }));

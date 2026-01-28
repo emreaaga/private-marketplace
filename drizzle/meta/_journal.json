@@ -5,22 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1768834961398,
-      "tag": "0000_groovy_carmella_unuscione",
+      "when": 1769419498894,
+      "tag": "0000_giant_squadron_sinister",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1768925367636,
-      "tag": "0001_steady_thaddeus_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1768990179739,
-      "tag": "0002_gorgeous_freak",
+      "when": 1769419687199,
+      "tag": "0001_warm_grandmaster",
       "breakpoints": true
     }
   ]

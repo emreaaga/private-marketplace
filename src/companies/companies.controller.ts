@@ -6,9 +6,11 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto';
+import { CompaniesQueryDto } from './dto';
 
 @Controller('companies')
 export class CompaniesController {
@@ -24,8 +26,8 @@ export class CompaniesController {
   }
 
   @Get()
-  findAll(): object {
-    return this.companiesService.findAll();
+  async findAll(@Query() query: CompaniesQueryDto): Promise<object> {
+    return await this.companiesService.findAll(query);
   }
 
   @Delete(':id')

@@ -8,24 +8,24 @@ import {
 import { relations } from 'drizzle-orm';
 
 import { clientsTable } from './clients';
-import { dispatchesTable } from './dispatches';
+import { shipmentsTable } from './shipments';
 import { servicesTable } from './services';
 import { orderItemsTable } from './order_items';
 
 export const orderStatusEnum = pgEnum('order_status', [
-  'received',
-  'in_flight',
-  'arrived',
-  'delivered',
-  'closed',
+  'received', // принят
+  'in_flight', // едет/летит
+  'arrived', // в стране
+  'delivered', // отдан клиенту
+  'closed', // закрыт
 ]);
 
 export const ordersTable = pgTable('orders', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
 
-  dispatch_id: integer('dispatch_id')
+  shipment_id: integer('shipment_id')
     .notNull()
-    .references(() => dispatchesTable.id),
+    .references(() => shipmentsTable.id),
 
   sender_id: integer('sender_id')
     .notNull()
@@ -58,9 +58,9 @@ export const ordersTable = pgTable('orders', {
 });
 
 export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
-  dispatch: one(dispatchesTable, {
-    fields: [ordersTable.dispatch_id],
-    references: [dispatchesTable.id],
+  shipment: one(shipmentsTable, {
+    fields: [ordersTable.shipment_id],
+    references: [shipmentsTable.id],
   }),
 
   sender: one(clientsTable, {

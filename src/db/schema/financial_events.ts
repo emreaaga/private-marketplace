@@ -8,7 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { ordersTable } from './orders';
-import { dispatchesTable } from './dispatches';
+import { shipmentsTable } from './shipments';
 import { flightsTable } from './flights';
 
 export const financialEventTypeEnum = pgEnum('financial_event_type', [
@@ -25,7 +25,7 @@ export const financialEventsTable = pgTable('financial_events', {
 
   /** к чему относится */
   order_id: integer('order_id').references(() => ordersTable.id),
-  dispatch_id: integer('dispatch_id').references(() => dispatchesTable.id),
+  shipment_id: integer('shipment_id').references(() => shipmentsTable.id),
   flight_id: integer('flight_id').references(() => flightsTable.id),
 
   type: financialEventTypeEnum().notNull(),

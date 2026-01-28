@@ -1,0 +1,12 @@
+import { Module } from '@nestjs/common';
+import { FlightsController } from './flights.controller';
+import { FlightsService } from './flights.service';
+import { FlightsRepository } from './flights.repository';
+import { DbModule } from 'src/db/db.module';
+
+@Module({
+  imports: [DbModule],
+  controllers: [FlightsController],
+  providers: [FlightsService, FlightsRepository],
+})
+export class FlightsModule {}

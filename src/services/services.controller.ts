@@ -1,13 +1,13 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { ServicesService } from './services.service';
-import { CreateServiceDto } from './dto/create-service.dto';
+import { CreateServiceDto, FindServicesQueryDto } from './dto';
 
 @Controller('/services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
   @Get()
-  async findAll() {
-    const result = await this.servicesService.findAll();
+  async findAll(@Query() query: FindServicesQueryDto) {
+    const result = await this.servicesService.findAll(query);
     return result;
   }
 

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ServicesRepository } from './services.repository';
-import { CreateServiceDto } from './dto/create-service.dto';
+import { CreateServiceDto, FindServicesQueryDto } from './dto';
 import { ServiceInsert } from './services.repository';
 
 @Injectable()
 export class ServicesService {
   constructor(private readonly servicesRepository: ServicesRepository) {}
-  async findAll() {
-    const services = await this.servicesRepository.findAll();
+  async findAll(filters: FindServicesQueryDto) {
+    const services = await this.servicesRepository.findAll(filters);
     return services;
   }
 

@@ -31,7 +31,7 @@ export const usersTable = pgTable('users', {
   role: userRoleEnum().notNull().default('company_owner'),
   status: userStatusEnum().notNull().default('active'),
 
-  country: varchar('country_code', { length: 2 }).notNull(),
+  country: varchar('country', { length: 2 }).notNull(),
   city: varchar('city', { length: 3 }).notNull(),
   district: varchar('district', { length: 50 }).notNull(),
 

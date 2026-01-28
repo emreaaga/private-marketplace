@@ -1,22 +1,19 @@
-import { Type } from 'class-transformer';
-import { IsInt, Min, IsEnum, IsNumber } from 'class-validator';
+import { IsEnum, IsInt, IsOptional } from 'class-validator';
 import { type ServiceType, ServiceTypeValues } from './service-type';
 import { type ServicePricing, ServicePricingValues } from './service-pricing';
+import { Type } from 'class-transformer';
 
-export class CreateServiceDto {
+export class FindServicesQueryDto {
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)
-  company_id: number;
+  company_id?: number;
 
+  @IsOptional()
   @IsEnum(ServiceTypeValues)
   type: ServiceType;
 
+  @IsOptional()
   @IsEnum(ServicePricingValues)
   pricing_type: ServicePricing;
-
-  @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
-  @Min(0)
-  price: number;
 }

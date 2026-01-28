@@ -1,12 +1,12 @@
 import { IsString, IsEnum, Length } from 'class-validator';
-import { CompanyType } from './company-type.enum';
+import { type CompanyType, CompanyTypeValues } from './company-type';
 
 export class CreateCompanyDto {
   @IsString()
   @Length(2, 100)
   name: string;
 
-  @IsEnum(CompanyType)
+  @IsEnum(CompanyTypeValues)
   type: CompanyType;
 
   @IsString()
