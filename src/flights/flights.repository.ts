@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/db/db.service';
-import { flightsTable, companiesTable, shipmentsTable } from 'src/db/schema';
+import {
+  flightsTable,
+  companiesTable,
+  shipmentsTable,
+  ordersTable,
+} from 'src/db/schema';
 import { eq, sql, inArray } from 'drizzle-orm';
 import { CreateFlightDto } from './dto';
 
@@ -77,5 +82,68 @@ export class FlightsRepository {
         eq(flightsTable.air_partner_id, companiesTable.id),
       );
     return flights;
+  }
+
+  async findOne(id: number) {
+    const [flight] = await this.db.client
+      .select({
+        id: flightsTable.id,
+
+        departure_location: {
+          country: flightsTable.from_country,
+          city: flightsTable.from_city,
+        },
+        arrival_location: {
+          country: flightsTable.to_country,
+          city: flightsTable.to_city,
+        },
+
+        air_partner_id: flightsTable.air_partner_id,
+        sender_customs_id: flightsTable.sender_customs_id,
+        receiver_customs_id: flightsTable.receiver_customs_id,
+
+        air_kg_price: flightsTable.air_kg_price,
+        sender_customs_kg_price: flightsTable.sender_customs_kg_price,
+        receiver_customs_kg_price: flightsTable.receiver_customs_kg_price,
+
+        loading_at: flightsTable.loading_at,
+        departure_at: flightsTable.departure_at,
+
+        arrival_at: flightsTable.arrival_at,
+        unloading_at: flightsTable.unloading_at,
+
+        awb_number: flightsTable.awb_number,
+        final_gross_weight_kg: flightsTable.final_gross_weight_kg,
+        status: flightsTable.status,
+        is_paid: flightsTable.is_paid,
+        paid_at: flightsTable.paid_at,
+        created_at: flightsTable.created_at,
+      })
+      .from(flightsTable)
+      .where(eq(flightsTable.id, id));
+
+    const shipments = await this.db.client
+      .select({
+        id: shipmentsTable.id,
+        company_id: shipmentsTable.company_id,
+        company_name: companiesTable.name,
+        orders_count: sql<number>`count(${ordersTable.id})`,
+        total_weight_kg: sql<string>`COALESCE(SUM(${ordersTable.weight_kg}), 0)`,
+      })
+      .from(shipmentsTable)
+      .leftJoin(ordersTable, eq(ordersTable.shipment_id, shipmentsTable.id))
+      .leftJoin(
+        companiesTable,
+        eq(companiesTable.id, shipmentsTable.company_id),
+      )
+      .where(eq(shipmentsTable.flight_id, id))
+      .groupBy(
+        shipmentsTable.id,
+        companiesTable.name,
+        shipmentsTable.company_id,
+        shipmentsTable.status,
+      );
+
+    return { ...flight, shipments };
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Query } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, Param } from '@nestjs/common';
 import { ShipmentsService } from './shipments.service';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { ShipmentsQueryDto } from './dto/shipments-query.dto';
@@ -10,6 +10,12 @@ export class ShipmentsController {
   @Get()
   async findAll(@Query() query: ShipmentsQueryDto) {
     const data = await this.shipmentsService.findAll(query);
+    return { data };
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    const data = await this.shipmentsService.findOne(id);
     return { data };
   }
 

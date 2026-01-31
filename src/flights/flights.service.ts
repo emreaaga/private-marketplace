@@ -11,6 +11,11 @@ export class FlightsService {
     return data;
   }
 
+  async findOne(id: number) {
+    const flight = await this.flightsRepository.findOne(id);
+    return flight;
+  }
+
   async create(dto: CreateFlightDto) {
     await this.flightsRepository.create(dto);
   }

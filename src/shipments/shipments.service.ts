@@ -12,6 +12,12 @@ export class ShipmentsService {
     return result;
   }
 
+  async findOne(id: string) {
+    const shipment = await this.shipmentsRepository.findOne(Number(id));
+
+    return shipment;
+  }
+
   async create(dto: CreateShipmentDto) {
     await this.shipmentsRepository.create(dto);
   }

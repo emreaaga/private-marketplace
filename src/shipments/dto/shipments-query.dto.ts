@@ -15,4 +15,9 @@ export class ShipmentsQueryDto {
   @Type(() => Number)
   @IsInt()
   company_id?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  flight_id?: number;
 }
