@@ -22,10 +22,10 @@ export const orderItemsTable = pgTable('order_items', {
     .references(() => ordersTable.id),
 
   name: varchar('name', { length: 255 }).notNull(),
-  category: orderItemCategoryEnum().notNull(),
+  category: orderItemCategoryEnum(),
 
   quantity: integer('quantity').notNull(),
-  declared_value: numeric('declared_value', { precision: 10, scale: 2 }),
+  unit_price: numeric('unit_price', { precision: 10, scale: 2 }).notNull(),
 });
 
 export const orderItemsRelations = relations(orderItemsTable, ({ one }) => ({

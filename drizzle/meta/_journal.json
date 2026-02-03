@@ -15,6 +15,34 @@
       "when": 1769419687199,
       "tag": "0001_warm_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769863429690,
+      "tag": "0002_faulty_thanos",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1769866934747,
+      "tag": "0003_unknown_arachne",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1770043781564,
+      "tag": "0004_petite_green_goblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1770044691391,
+      "tag": "0005_even_zzzax",
+      "breakpoints": true
     }
   ]
 }

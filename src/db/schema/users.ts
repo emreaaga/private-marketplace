@@ -9,7 +9,7 @@ import { companiesTable } from './companies';
 import { relations } from 'drizzle-orm';
 
 export const userRoleEnum = pgEnum('role', ['admin', 'company_owner']);
-export const userStatusEnum = pgEnum('status', [
+export const userStatusEnum = pgEnum('user_status', [
   'active',
   'blocked',
   'pending',

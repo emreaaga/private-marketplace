@@ -1,0 +1,1 @@
+ALTER TABLE "order_items" ALTER COLUMN "category" DROP NOT NULL;

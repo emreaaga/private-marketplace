@@ -7,3 +7,4 @@ export * from './flights';
 export * from './orders';
 export * from './order_items';
 export * from './flight_expenses';
+export * from './client_passports';
