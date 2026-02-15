@@ -6,8 +6,9 @@ import {
   shipmentsTable,
   ordersTable,
 } from 'src/db/schema';
-import { eq, sql, inArray } from 'drizzle-orm';
-import { CreateFlightDto } from './dto';
+import { eq, sql, inArray, desc, count } from 'drizzle-orm';
+import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 @Injectable()
 export class FlightsRepository {
@@ -51,7 +52,11 @@ export class FlightsRepository {
     });
   }
 
-  async findAll() {
+  async findAll(filters: FlightsQueryDto): Promise<PaginatedResponse> {
+    const page = filters.page;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
     const shipmentsCountSubquery = sql<number>`
       (
         SELECT COUNT(*)
@@ -80,8 +85,28 @@ export class FlightsRepository {
       .leftJoin(
         companiesTable,
         eq(flightsTable.air_partner_id, companiesTable.id),
-      );
-    return flights;
+      )
+      .orderBy(desc(flightsTable.created_at), desc(flightsTable.id))
+      .limit(limit)
+      .offset(offset);
+
+    const [{ count: total }] = await this.db.client
+      .select({ count: count() })
+      .from(flightsTable);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: flights,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {

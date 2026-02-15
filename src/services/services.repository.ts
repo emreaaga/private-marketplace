@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/db/db.service';
 import { companiesTable, servicesTable } from 'src/db/schema';
-import { InferInsertModel, eq, and, type SQL } from 'drizzle-orm';
+import { InferInsertModel, eq, and, type SQL, count, desc } from 'drizzle-orm';
 import { FindServicesQueryDto } from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 export type ServiceInsert = InferInsertModel<typeof servicesTable>;
 
@@ -10,9 +11,10 @@ export type ServiceInsert = InferInsertModel<typeof servicesTable>;
 export class ServicesRepository {
   constructor(private readonly dbService: DbService) {}
 
-  // Должен добавить пагинацию
-  async findAll(filters: FindServicesQueryDto) {
-    const { company_id, type, pricing_type } = filters;
+  async findAll(filters: FindServicesQueryDto): Promise<PaginatedResponse> {
+    const { company_id, type, pricing_type, page } = filters;
+    const limit = 10;
+    const offset = (page - 1) * limit;
 
     const whereConditions: SQL[] = [];
 
@@ -41,9 +43,29 @@ export class ServicesRepository {
       })
       .from(servicesTable)
       .leftJoin(companiesTable, eq(servicesTable.company_id, companiesTable.id))
+      .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
+      .orderBy(desc(servicesTable.created_at), desc(servicesTable.id))
+      .limit(limit)
+      .offset(offset);
+
+    const [{ count: total }] = await this.dbService.client
+      .select({ count: count() })
+      .from(servicesTable)
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
 
-    return services;
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data: services,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async create(dto: ServiceInsert) {

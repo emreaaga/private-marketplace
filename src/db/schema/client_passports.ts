@@ -5,6 +5,7 @@ import {
   timestamp,
   pgEnum,
   boolean,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { clientsTable } from './clients';
@@ -16,27 +17,36 @@ export const passportStatusEnum = pgEnum('passport_status', [
   'blocked',
 ]);
 
-export const clientPassportsTable = pgTable('client_passports', {
-  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+export const clientPassportsTable = pgTable(
+  'client_passports',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
 
-  client_id: integer('client_id')
-    .notNull()
-    .references(() => clientsTable.id, { onDelete: 'cascade' }),
+    client_id: integer('client_id')
+      .notNull()
+      .references(() => clientsTable.id, { onDelete: 'cascade' }),
 
-  passport_number: varchar('passport_number', { length: 50 }).notNull(),
-  country: varchar('country', { length: 2 }).notNull(),
+    passport_number: varchar('passport_number', { length: 50 }).notNull(),
+    country: varchar('country', { length: 2 }).notNull(),
 
-  issued_at: timestamp('issued_at', { withTimezone: false }),
-  expires_at: timestamp('expires_at', { withTimezone: false }),
+    issued_at: timestamp('issued_at', { withTimezone: false }),
+    expires_at: timestamp('expires_at', { withTimezone: false }),
 
-  status: passportStatusEnum().notNull().default('active'),
+    status: passportStatusEnum().notNull().default('active'),
 
-  is_primary: boolean('is_primary').notNull().default(false),
+    is_primary: boolean('is_primary').notNull().default(false),
 
-  created_at: timestamp('created_at', { withTimezone: false })
-    .defaultNow()
-    .notNull(),
-});
+    created_at: timestamp('created_at', { withTimezone: false })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('passport_country_unique').on(
+      table.country,
+      table.passport_number,
+    ),
+  ],
+);
 
 export const clientPassportsRelations = relations(
   clientPassportsTable,

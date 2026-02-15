@@ -1,12 +1,13 @@
 import { IsEnum, IsInt, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PaginationQueryDto } from 'src/common/dto';
 
 import {
   ShipmentsStatusValues,
   type ShipmentsStatus,
 } from './shipments-status';
 
-export class ShipmentsQueryDto {
+export class ShipmentsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsEnum(ShipmentsStatusValues)
   status?: ShipmentsStatus;

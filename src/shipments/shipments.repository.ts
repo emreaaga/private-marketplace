@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { DbService } from 'src/db/db.service';
+import { and, eq, sql, type SQL, desc, count } from 'drizzle-orm';
+import { ShipmentsQueryDto, CreateShipmentDto } from './dto';
 import { shipmentsTable, companiesTable, ordersTable } from 'src/db/schema';
-import { CreateShipmentDto } from './dto/create-shipment.dto';
-import { and, eq, sql, type SQL } from 'drizzle-orm';
-import { ShipmentsQueryDto } from './dto/shipments-query.dto';
+import { DbService } from 'src/db/db.service';
+import { PaginatedResponse } from 'src/common/types';
 
 @Injectable()
 export class ShipmentsRepository {
   constructor(private readonly db: DbService) {}
 
-  async findAll(filters: ShipmentsQueryDto) {
-    const { status, company_id, flight_id } = filters;
+  async findAll(filters: ShipmentsQueryDto): Promise<PaginatedResponse> {
+    const { status, company_id, flight_id, page } = filters;
+    const limit = 10;
+    const offset = (page - 1) * limit;
 
     const whereConditions: SQL[] = [];
 
@@ -54,9 +56,29 @@ export class ShipmentsRepository {
         shipmentsTable.to_country,
         shipmentsTable.status,
         shipmentsTable.created_at,
-      );
+      )
+      .orderBy(desc(shipmentsTable.created_at), desc(shipmentsTable.id))
+      .limit(limit)
+      .offset(offset);
 
-    return data;
+    const [{ count: total }] = await this.db.client
+      .select({ count: count() })
+      .from(shipmentsTable)
+      .where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   async findOne(id: number) {

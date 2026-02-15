@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "extra_fee" numeric(10, 2);

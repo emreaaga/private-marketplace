@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto';
@@ -27,12 +28,22 @@ export class CompaniesController {
 
   @Get()
   async findAll(@Query() query: CompaniesQueryDto): Promise<object> {
-    return await this.companiesService.findAll(query);
+    const { data, pagination } = await this.companiesService.findAll(query);
+    return { data, pagination };
+  }
+
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const data = await this.companiesService.findOne(id);
+    return { data };
   }
 
   @Delete(':id')
   async deleteCompany(@Param('id', ParseIntPipe) id: number): Promise<object> {
-    await this.companiesService.deleteOne(id);
+    const result = await this.companiesService.deleteOne(id);
+    if (!result) {
+      throw new NotFoundException('User not found.');
+    }
     return {
       message: 'Company deleted successfully',
     };

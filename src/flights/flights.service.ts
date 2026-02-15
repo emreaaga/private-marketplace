@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { FlightsRepository } from './flights.repository';
-import { CreateFlightDto } from './dto';
+import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 @Injectable()
 export class FlightsService {
   constructor(private readonly flightsRepository: FlightsRepository) {}
 
-  async findAll() {
-    const data = await this.flightsRepository.findAll();
+  async findAll(dto: FlightsQueryDto): Promise<PaginatedResponse> {
+    const data = await this.flightsRepository.findAll(dto);
     return data;
   }
 

@@ -5,19 +5,21 @@ import {
   Body,
   Param,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { FlightsService } from './flights.service';
-import { CreateFlightDto } from './dto';
+import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 @Controller('/flights')
 export class FlightsController {
   constructor(private readonly flightsService: FlightsService) {}
 
   @Get()
-  async findAll() {
-    const data = await this.flightsService.findAll();
+  async findAll(@Query() dto: FlightsQueryDto): Promise<PaginatedResponse> {
+    const { data, pagination } = await this.flightsService.findAll(dto);
 
-    return { data };
+    return { data, pagination };
   }
 
   @Get(':id')

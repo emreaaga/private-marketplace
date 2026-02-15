@@ -8,8 +8,10 @@ import {
   Patch,
   UseGuards,
   Post,
+  NotFoundException,
+  Query,
 } from '@nestjs/common';
-import { UpdateRoleDto, UpdateStatusDto } from './dto';
+import { UpdateRoleDto, UpdateStatusDto, UsersQueryDto } from './dto';
 import { UsersService } from './users.service';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -25,25 +27,34 @@ export class UsersController {
     return { message: 'Successfully create user.' };
   }
 
-  //TODO Must add pagination for list of users
   @UseGuards(AccessTokenGuard)
   @Get()
-  async findAll(): Promise<object> {
-    const users = await this.usersService.findAll();
-    return { message: 'Paginated list of users.', users };
+  async findAll(@Query() query: UsersQueryDto): Promise<object> {
+    const { data, pagination } = await this.usersService.findAll(query);
+    return { data, pagination };
   }
 
   @UseGuards(AccessTokenGuard)
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOne(id);
-    return { message: 'Current user', user };
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    return { data: user };
   }
 
   @UseGuards(AccessTokenGuard)
   @Delete(':id')
   async deleteUser(@Param('id', ParseIntPipe) id: number) {
-    await this.usersService.deleteUser(id);
+    const result = await this.usersService.deleteUser(id);
+
+    if (!result) {
+      throw new NotFoundException('User not found!');
+    }
+
     return { message: 'User deleted.' };
   }
 

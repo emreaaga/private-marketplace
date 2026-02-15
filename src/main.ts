@@ -2,10 +2,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { DrizzlePgExceptionFilter } from './common/filters/drizzle-pg-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.useGlobalFilters(new DrizzlePgExceptionFilter());
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({

@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, ne } from 'drizzle-orm';
 import { DbService } from 'src/db/db.service';
 import { usersTable } from 'src/db/schema';
 import { companiesTable } from 'src/db/schema';
 import { CreateUser } from './dto/types/create-user.types';
+import { desc, count } from 'drizzle-orm';
+import { UsersQueryDto } from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 type UserStatuses = 'pending' | 'active' | 'blocked';
 type UserRoles = 'admin' | 'company_owner';
@@ -12,7 +15,11 @@ type UserRoles = 'admin' | 'company_owner';
 export class UsersRepository {
   constructor(private readonly db: DbService) {}
 
-  async allUsers() {
+  async allUsers(filters: UsersQueryDto): Promise<PaginatedResponse> {
+    const limit = 10;
+    const page = filters.page;
+    const offset = (page - 1) * limit;
+
     const users = await this.db.client
       .select({
         id: usersTable.id,
@@ -25,9 +32,32 @@ export class UsersRepository {
         created_at: usersTable.created_at,
       })
       .from(usersTable)
-      .leftJoin(companiesTable, eq(usersTable.company_id, companiesTable.id));
+      .leftJoin(companiesTable, eq(usersTable.company_id, companiesTable.id))
+      .where(ne(usersTable.role, 'admin'))
+      .orderBy(desc(usersTable.created_at), desc(usersTable.id))
+      .limit(limit)
+      .offset(offset);
 
-    return users;
+    const [{ count: total }] = await this.db.client
+      .select({ count: count() })
+      .from(usersTable)
+      .where(ne(usersTable.role, 'admin'));
+
+    const totalPages = Math.ceil(total / limit);
+
+    const pagination = {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    };
+
+    return {
+      data: users,
+      pagination,
+    };
   }
 
   // Есть ошибка что company_id нету
@@ -52,20 +82,35 @@ export class UsersRepository {
     const [user] = await this.db.client
       .select({
         id: usersTable.id,
+        company_name: companiesTable.name,
+        company_type: companiesTable.type,
         name: usersTable.name,
+        surname: usersTable.surname,
         email: usersTable.email,
         role: usersTable.role,
         status: usersTable.status,
+        country: usersTable.country,
+        city: usersTable.city,
+        district: usersTable.district,
+        address_line: usersTable.address_line,
+        phone_country_code: usersTable.phone_country_code,
+        phone_number: usersTable.phone_number,
         created_at: usersTable.created_at,
       })
       .from(usersTable)
+      .leftJoin(companiesTable, eq(usersTable.company_id, companiesTable.id))
       .where(eq(usersTable.id, id));
 
     return user;
   }
 
-  async deleteUser(id: number) {
-    await this.db.client.delete(usersTable).where(eq(usersTable.id, id));
+  async deleteUser(id: number): Promise<boolean> {
+    const deleted = await this.db.client
+      .delete(usersTable)
+      .where(eq(usersTable.id, id))
+      .returning({ id: usersTable.id });
+
+    return deleted.length > 0;
   }
 
   async changeStatus(id: number, status: UserStatuses) {

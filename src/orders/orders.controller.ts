@@ -1,20 +1,22 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { OrdersQueryDto } from './dto/orders-query.dto';
+import { PaginatedResponse } from 'src/common/types';
 
 @Controller('/orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  create(@Body() dto: CreateOrderDto) {
-    console.log(dto);
+  async create(@Body() dto: CreateOrderDto) {
+    await this.ordersService.create(dto);
     return { message: 'Order created!' };
   }
 
   @Get()
-  async findAll() {
-    const data = await this.ordersService.findAll();
-    return { data };
+  async findAll(@Query() dto: OrdersQueryDto): Promise<PaginatedResponse> {
+    const { data, pagination } = await this.ordersService.findAll(dto);
+    return { data, pagination };
   }
 }

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ShipmentsRepository } from './shipments.repository';
-import { CreateShipmentDto } from './dto/create-shipment.dto';
-import { ShipmentsQueryDto } from './dto/shipments-query.dto';
+import { CreateShipmentDto, ShipmentsQueryDto } from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 @Injectable()
 export class ShipmentsService {
   constructor(private readonly shipmentsRepository: ShipmentsRepository) {}
 
-  async findAll(query: ShipmentsQueryDto) {
+  async findAll(query: ShipmentsQueryDto): Promise<PaginatedResponse> {
     const result = await this.shipmentsRepository.findAll(query);
     return result;
   }

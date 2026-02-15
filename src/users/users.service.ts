@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { CreateUser } from './dto/types/create-user.types';
 import { PasswordService } from 'src/common/services';
+import { UsersQueryDto } from './dto';
 
 type UserStatuses = 'pending' | 'active' | 'blocked';
 type UserRoles = 'admin' | 'company_owner';
@@ -22,20 +23,25 @@ export class UsersService {
     await this.usersRepository.create(dto);
   }
 
-  async findAll() {
-    const users = await this.usersRepository.allUsers();
+  async findAll(query: UsersQueryDto) {
+    const data = await this.usersRepository.allUsers(query);
 
-    return users;
+    return data;
   }
 
   async findOne(id: number) {
     const user = await this.usersRepository.oneUser(id);
 
+    if (!user) {
+      return;
+    }
+
     return user;
   }
 
   async deleteUser(id: number) {
-    await this.usersRepository.deleteUser(id);
+    const result = await this.usersRepository.deleteUser(id);
+    return result;
   }
 
   async updateStatus(id: number, status: UserStatuses) {

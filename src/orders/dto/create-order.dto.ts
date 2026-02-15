@@ -1,7 +1,8 @@
-import { IsString, ValidateNested, ArrayNotEmpty } from 'class-validator';
+import { ValidateNested, ArrayNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CreateClientDto } from 'src/clients/dto/create-client.dto';
 import { CreateOrderItem } from 'src/order-items/dto/create-order-items.dto';
+import { OrderSummaryDto } from './order-summary.dto';
 
 export class CreateOrderDto {
   @ValidateNested()
@@ -13,10 +14,11 @@ export class CreateOrderDto {
   receiver: CreateClientDto;
 
   @ArrayNotEmpty()
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => CreateOrderItem)
   order_items: CreateOrderItem[];
 
-  @IsString()
-  summary: string;
+  @ValidateNested()
+  @Type(() => OrderSummaryDto)
+  summary: OrderSummaryDto;
 }

@@ -43,6 +43,27 @@
       "when": 1770044691391,
       "tag": "0005_even_zzzax",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1770730817004,
+      "tag": "0006_clammy_gambit",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1770913105672,
+      "tag": "0007_numerous_sage",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1770977129016,
+      "tag": "0008_yielding_triton",
+      "breakpoints": true
     }
   ]
 }

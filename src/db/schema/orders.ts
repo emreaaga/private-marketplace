@@ -35,11 +35,10 @@ export const ordersTable = pgTable('orders', {
     .notNull()
     .references(() => clientsTable.id),
 
-  service_id: integer('service_id')
-    .notNull()
-    .references(() => servicesTable.id),
+  service_id: integer('service_id').references(() => servicesTable.id),
 
   weight_kg: numeric('weight_kg', { precision: 8, scale: 2 }).notNull(),
+  extra_fee: numeric('extra_fee', { precision: 10, scale: 2 }),
 
   rate_per_kg: numeric('rate_per_kg', { precision: 8, scale: 2 }).notNull(),
   subtotal: numeric('subtotal', { precision: 10, scale: 2 }).notNull(),

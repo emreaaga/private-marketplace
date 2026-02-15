@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { ClientsRepository } from './clients.repository';
-import { CreateClientDto } from './dto/create-client.dto';
+import { CreateClientDto, ClientsQueryDto } from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 @Injectable()
 export class ClientsService {
   constructor(private readonly clientsRepository: ClientsRepository) {}
 
-  async findAll() {
-    const clients = await this.clientsRepository.findAll();
+  async findAll(dto: ClientsQueryDto): Promise<PaginatedResponse> {
+    const clients = await this.clientsRepository.findAll(dto);
     return clients;
   }
 

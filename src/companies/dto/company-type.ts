@@ -1,5 +1,12 @@
 import { companyTypeEnum } from 'src/db/schema';
 
-export const CompanyTypeValues = companyTypeEnum.enumValues;
+const _AllCompanyTypeValues = companyTypeEnum.enumValues;
 
-export type CompanyType = (typeof CompanyTypeValues)[number];
+export type CompanyType = Exclude<
+  (typeof _AllCompanyTypeValues)[number],
+  'platform'
+>;
+
+export const CompanyTypeValues = _AllCompanyTypeValues.filter(
+  (t): t is CompanyType => t !== 'platform',
+);

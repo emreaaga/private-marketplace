@@ -1,15 +1,16 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { ClientsService } from './clients.service';
-import { CreateClientDto } from './dto/create-client.dto';
+import { CreateClientDto, ClientsQueryDto } from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 @Controller('clients')
 export default class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
   @Get()
-  async findAll() {
-    const data = await this.clientsService.findAll();
-    return { data };
+  async findAll(@Query() dto: ClientsQueryDto): Promise<PaginatedResponse> {
+    const { data, pagination } = await this.clientsService.findAll(dto);
+    return { data, pagination };
   }
 
   @Post()
