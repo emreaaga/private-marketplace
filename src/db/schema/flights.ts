@@ -11,7 +11,7 @@ import { relations } from 'drizzle-orm';
 
 import { shipmentsTable } from './shipments';
 import { companiesTable } from './companies';
-import { flightExpensesTable } from './flight_expenses';
+import { flightExpensesTable } from './flight-expenses';
 
 export const flightStatusEnum = pgEnum('flight_status', [
   'planned',

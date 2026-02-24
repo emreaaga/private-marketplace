@@ -2,12 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/db/db.service';
 import { clientsTable, clientPassportsTable } from 'src/db/schema';
 import { CreateClientDto, ClientsQueryDto } from './dto';
-import { desc, count } from 'drizzle-orm';
+import { desc, count, eq } from 'drizzle-orm';
 import { PaginatedResponse } from 'src/common/types';
+import { ClientPassportsRepository } from 'src/client-passports/client-passports.repository';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class ClientsRepository {
-  constructor(private readonly db: DbService) {}
+  constructor(
+    private readonly db: DbService,
+    private readonly passRep: ClientPassportsRepository,
+  ) {}
 
   async findAll(filter: ClientsQueryDto): Promise<PaginatedResponse> {
     const page = filter.page;
@@ -64,5 +69,47 @@ export class ClientsRepository {
     );
 
     return created.client_id;
+  }
+
+  async findOne(id: number) {
+    const [client] = await this.db.client
+      .select({
+        name: clientsTable.name,
+        surname: clientsTable.surname,
+        country: clientsTable.country,
+        city: clientsTable.city,
+        district: clientsTable.district,
+        phone_country_code: clientsTable.phone_country_code,
+        phone_number: clientsTable.phone_number,
+        address_line: clientsTable.address_line,
+      })
+      .from(clientsTable)
+      .where(eq(clientsTable.id, id));
+
+    return client;
+  }
+
+  async findOneWithPassports(client_id: number) {
+    const [client] = await this.db.client
+      .select({
+        name: clientsTable.name,
+        surname: clientsTable.surname,
+        country: clientsTable.country,
+        city: clientsTable.city,
+        district: clientsTable.district,
+        phone_country_code: clientsTable.phone_country_code,
+        phone_number: clientsTable.phone_number,
+        address_line: clientsTable.address_line,
+      })
+      .from(clientsTable)
+      .where(eq(clientsTable.id, client_id));
+
+    if (!client) {
+      throw new NotFoundException(`Client with id ${client_id} not found`);
+    }
+
+    const passports = await this.passRep.findByClientId(client_id);
+
+    return { ...client, passports };
   }
 }

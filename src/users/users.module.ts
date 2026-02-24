@@ -9,5 +9,6 @@ import { CommonModule } from 'src/common/common.module';
   imports: [DbModule, CommonModule],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],
+  exports: [UsersRepository],
 })
 export class UsersModule {}

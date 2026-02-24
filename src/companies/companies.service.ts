@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { CompaniesRepository } from './companies.repository';
-import { CreateCompanyDto, CompaniesQueryDto } from './dto';
+import {
+  CreateCompanyDto,
+  CompaniesQueryDto,
+  CompaniesLookupQueryDto,
+} from './dto';
 
 @Injectable()
 export class CompaniesService {
@@ -11,6 +15,11 @@ export class CompaniesService {
     return data;
   }
 
+  async lookup(dto: CompaniesLookupQueryDto) {
+    const data = await this.companiesRepository.lookup(dto);
+    return data;
+  }
+
   async findOne(id: number) {
     const company = await this.companiesRepository.findOne(id);
     return company;
@@ -18,10 +27,5 @@ export class CompaniesService {
 
   async create(dto: CreateCompanyDto) {
     await this.companiesRepository.create(dto);
-  }
-
-  async deleteOne(id: number): Promise<boolean> {
-    const result = await this.companiesRepository.deleteOne(id);
-    return result;
   }
 }

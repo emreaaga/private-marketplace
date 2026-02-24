@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/db/db.service';
 import { companiesTable } from 'src/db/schema';
-import { CreateCompanyDto, CompaniesQueryDto } from './dto';
-import { eq, ne, desc, count } from 'drizzle-orm';
+import {
+  CreateCompanyDto,
+  CompaniesQueryDto,
+  CompaniesLookupQueryDto,
+  CompanyType,
+} from './dto';
+import { eq, ne, desc, count, and } from 'drizzle-orm';
 import { PaginatedResponse } from 'src/common/types';
 
 @Injectable()
@@ -46,12 +51,27 @@ export class CompaniesRepository {
     };
   }
 
+  async lookup(filters: CompaniesLookupQueryDto): Promise<object> {
+    const whereCondition = filters.type
+      ? eq(companiesTable.type, filters.type)
+      : ne(companiesTable.type, 'platform');
+
+    const companies = await this.db.client
+      .select({ id: companiesTable.id, name: companiesTable.name })
+      .from(companiesTable)
+      .where(whereCondition)
+      .orderBy(desc(companiesTable.created_at), desc(companiesTable.id))
+      .limit(100);
+
+    return companies;
+  }
+
   async create(dto: CreateCompanyDto) {
     await this.db.client.insert(companiesTable).values(dto);
   }
 
   async findOne(id: number) {
-    const company = await this.db.client
+    const [company] = await this.db.client
       .select({
         id: companiesTable.id,
         name: companiesTable.name,
@@ -67,12 +87,17 @@ export class CompaniesRepository {
     return company;
   }
 
-  async deleteOne(id: number): Promise<boolean> {
-    const deleted = await this.db.client
-      .delete(companiesTable)
-      .where(eq(companiesTable.id, id))
-      .returning({ id: companiesTable.id });
+  async getTotalCount(companyType: CompanyType) {
+    const [{ count: totalPostal }] = await this.db.client
+      .select({ count: count() })
+      .from(companiesTable)
+      .where(
+        and(
+          eq(companiesTable.type, companyType),
+          eq(companiesTable.is_active, true),
+        ),
+      );
 
-    return deleted.length > 0;
+    return totalPostal;
   }
 }

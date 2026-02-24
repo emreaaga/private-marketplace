@@ -6,86 +6,83 @@ import {
   shipmentsTable,
   ordersTable,
 } from 'src/db/schema';
-import { eq, sql, inArray, desc, count } from 'drizzle-orm';
+import { eq, sql, desc, count, sum } from 'drizzle-orm';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
 import { PaginatedResponse } from 'src/common/types';
+import { DbTransaction } from 'src/db/db.types';
 
 @Injectable()
 export class FlightsRepository {
   constructor(private readonly db: DbService) {}
 
-  async create(dto: CreateFlightDto) {
-    return this.db.client.transaction(async (tx) => {
-      const [flight] = await tx
-        .insert(flightsTable)
-        .values({
-          from_country: dto.departure_location.country,
-          from_city: dto.departure_location.city,
+  async create(dto: CreateFlightDto, tx?: DbTransaction) {
+    const db = tx ?? this.db.client;
 
-          to_country: dto.arrival_location.country,
-          to_city: dto.arrival_location.city,
+    const [flight] = await db
+      .insert(flightsTable)
+      .values({
+        from_country: dto.departure_location.country,
+        from_city: dto.departure_location.city,
 
-          air_partner_id: dto.air_partner_id,
-          sender_customs_id: dto.sender_customs_id,
-          receiver_customs_id: dto.receiver_customs_id,
+        to_country: dto.arrival_location.country,
+        to_city: dto.arrival_location.city,
 
-          air_kg_price: dto.air_kg_price,
-          sender_customs_kg_price: dto.sender_customs_kg_price,
-          receiver_customs_kg_price: dto.receiver_customs_kg_price,
+        air_partner_id: dto.air_partner_id,
+        sender_customs_id: dto.sender_customs_id,
+        receiver_customs_id: dto.receiver_customs_id,
 
-          loading_at: new Date(dto.loading_at),
-          departure_at: new Date(dto.departure_at),
-          arrival_at: new Date(dto.arrival_at),
-          unloading_at: new Date(dto.unloading_at),
-        })
-        .returning({ id: flightsTable.id });
+        air_kg_price: dto.air_kg_price,
+        sender_customs_kg_price: dto.sender_customs_kg_price,
+        receiver_customs_kg_price: dto.receiver_customs_kg_price,
 
-      const result = await tx
-        .update(shipmentsTable)
-        .set({ flight_id: flight.id, status: 'ready' })
-        .where(inArray(shipmentsTable.id, dto.shipments))
-        .returning({ id: shipmentsTable.id });
+        loading_at: new Date(dto.loading_at),
+        departure_at: new Date(dto.departure_at),
+        arrival_at: new Date(dto.arrival_at),
+        unloading_at: new Date(dto.unloading_at),
+      })
+      .returning({ id: flightsTable.id });
 
-      if (result.length !== dto.shipments.length) {
-        throw new Error('Some shipments were not found!');
-      }
-    });
+    return flight;
   }
 
   async findAll(filters: FlightsQueryDto): Promise<PaginatedResponse> {
-    const page = filters.page;
+    const page = filters.page || 1;
     const limit = 10;
     const offset = (page - 1) * limit;
 
-    const shipmentsCountSubquery = sql<number>`
-      (
-        SELECT COUNT(*)
-        FROM ${shipmentsTable}
-        WHERE ${shipmentsTable.flight_id} = ${flightsTable.id}
-      )
-    `;
+    const flightStats = this.db.client
+      .select({
+        flight_id: shipmentsTable.flight_id,
+        total_prepaid: sum(ordersTable.prepaid_amount).as('total_prepaid'),
+        total_remaining:
+          sql<string>`sum(${ordersTable.total_amount}) - sum(${ordersTable.prepaid_amount})`.as(
+            'total_remaining',
+          ),
+      })
+      .from(ordersTable)
+      .innerJoin(shipmentsTable, eq(ordersTable.shipment_id, shipmentsTable.id))
+      .groupBy(shipmentsTable.flight_id)
+      .as('flight_stats');
 
     const flights = await this.db.client
       .select({
         id: flightsTable.id,
-
-        route: sql<string>`upper(${flightsTable.from_city}) || ' → ' || upper(${flightsTable.to_city})`,
-
+        route: sql<string>`upper(${flightsTable.from_city}) || '→' || upper(${flightsTable.to_city})`,
         air_partner_name: companiesTable.name,
         air_kg_price: flightsTable.air_kg_price,
-
         final_gross_weight_kg: flightsTable.final_gross_weight_kg,
-
-        shipments_count: shipmentsCountSubquery,
-
         status: flightsTable.status,
         arrival_at: flightsTable.arrival_at,
+
+        prepaid_sum: sql<string>`coalesce(${flightStats.total_prepaid}, '0')`,
+        remaining_sum: sql<string>`coalesce(${flightStats.total_remaining}, '0')`,
       })
       .from(flightsTable)
-      .leftJoin(
+      .innerJoin(
         companiesTable,
         eq(flightsTable.air_partner_id, companiesTable.id),
       )
+      .leftJoin(flightStats, eq(flightsTable.id, flightStats.flight_id))
       .orderBy(desc(flightsTable.created_at), desc(flightsTable.id))
       .limit(limit)
       .offset(offset);
@@ -109,7 +106,7 @@ export class FlightsRepository {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(flightId: number) {
     const [flight] = await this.db.client
       .select({
         id: flightsTable.id,
@@ -145,30 +142,8 @@ export class FlightsRepository {
         created_at: flightsTable.created_at,
       })
       .from(flightsTable)
-      .where(eq(flightsTable.id, id));
+      .where(eq(flightsTable.id, flightId));
 
-    const shipments = await this.db.client
-      .select({
-        id: shipmentsTable.id,
-        company_id: shipmentsTable.company_id,
-        company_name: companiesTable.name,
-        orders_count: sql<number>`count(${ordersTable.id})`,
-        total_weight_kg: sql<string>`COALESCE(SUM(${ordersTable.weight_kg}), 0)`,
-      })
-      .from(shipmentsTable)
-      .leftJoin(ordersTable, eq(ordersTable.shipment_id, shipmentsTable.id))
-      .leftJoin(
-        companiesTable,
-        eq(companiesTable.id, shipmentsTable.company_id),
-      )
-      .where(eq(shipmentsTable.flight_id, id))
-      .groupBy(
-        shipmentsTable.id,
-        companiesTable.name,
-        shipmentsTable.company_id,
-        shipmentsTable.status,
-      );
-
-    return { ...flight, shipments };
+    return flight;
   }
 }

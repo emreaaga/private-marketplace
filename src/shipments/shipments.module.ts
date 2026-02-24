@@ -8,5 +8,6 @@ import { ShipmentsService } from './shipments.service';
   imports: [DbModule],
   controllers: [ShipmentsController],
   providers: [ShipmentsRepository, ShipmentsService],
+  exports: [ShipmentsRepository],
 })
 export class ShipmentsModule {}

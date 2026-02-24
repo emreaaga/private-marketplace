@@ -15,6 +15,7 @@ export class DrizzlePgExceptionFilter implements ExceptionFilter {
     const res = ctx.getResponse<Response>();
 
     const pg = exception.cause as unknown as PgError;
+    console.log(pg.constraint);
 
     if (pg?.code !== '23505' || pg?.constraint !== 'passport_country_unique') {
       throw exception;

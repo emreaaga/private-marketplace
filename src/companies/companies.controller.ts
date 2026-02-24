@@ -2,16 +2,19 @@ import {
   Controller,
   Get,
   Post,
-  Delete,
   Body,
   Param,
   ParseIntPipe,
   Query,
-  NotFoundException,
+  Patch,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
-import { CreateCompanyDto } from './dto';
-import { CompaniesQueryDto } from './dto';
+import {
+  CreateCompanyDto,
+  CompaniesQueryDto,
+  CompaniesLookupQueryDto,
+} from './dto';
+import { PaginatedResponse } from 'src/common/types';
 
 @Controller('companies')
 export class CompaniesController {
@@ -27,25 +30,27 @@ export class CompaniesController {
   }
 
   @Get()
-  async findAll(@Query() query: CompaniesQueryDto): Promise<object> {
-    const { data, pagination } = await this.companiesService.findAll(query);
+  async findAll(@Query() dto: CompaniesQueryDto): Promise<PaginatedResponse> {
+    const { data, pagination } = await this.companiesService.findAll(dto);
     return { data, pagination };
+  }
+
+  @Get('lookup')
+  async lookup(@Query() dto: CompaniesLookupQueryDto): Promise<object> {
+    const data = await this.companiesService.lookup(dto);
+    return { data };
+  }
+
+  //TODO Добавить логику обновления и dto для request body
+  @Patch(':id')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  update(@Param('id', ParseIntPipe) id: number) {
+    return { message: 'Company updated.' };
   }
 
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const data = await this.companiesService.findOne(id);
     return { data };
-  }
-
-  @Delete(':id')
-  async deleteCompany(@Param('id', ParseIntPipe) id: number): Promise<object> {
-    const result = await this.companiesService.deleteOne(id);
-    if (!result) {
-      throw new NotFoundException('User not found.');
-    }
-    return {
-      message: 'Company deleted successfully',
-    };
   }
 }

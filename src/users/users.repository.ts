@@ -8,9 +8,6 @@ import { desc, count } from 'drizzle-orm';
 import { UsersQueryDto } from './dto';
 import { PaginatedResponse } from 'src/common/types';
 
-type UserStatuses = 'pending' | 'active' | 'blocked';
-type UserRoles = 'admin' | 'company_owner';
-
 @Injectable()
 export class UsersRepository {
   constructor(private readonly db: DbService) {}
@@ -113,17 +110,12 @@ export class UsersRepository {
     return deleted.length > 0;
   }
 
-  async changeStatus(id: number, status: UserStatuses) {
-    await this.db.client
-      .update(usersTable)
-      .set({ status: status })
-      .where(eq(usersTable.id, id));
-  }
+  async getTotalCount() {
+    const [{ count: totalUsers }] = await this.db.client
+      .select({ count: count() })
+      .from(usersTable)
+      .where(eq(usersTable.status, 'active'));
 
-  async changeRole(id: number, role: UserRoles) {
-    await this.db.client
-      .update(usersTable)
-      .set({ role: role })
-      .where(eq(usersTable.id, id));
+    return totalUsers;
   }
 }

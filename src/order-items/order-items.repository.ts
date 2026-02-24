@@ -1,10 +1,24 @@
 import { Injectable } from '@nestjs/common';
+import { eq } from 'drizzle-orm';
 import { DbService } from 'src/db/db.service';
 import { orderItemsTable } from 'src/db/schema';
 
 @Injectable()
 export class OrderItemsRepository {
   constructor(private readonly db: DbService) {}
+
+  async findByOrderId(orderId: number) {
+    const orderItems = await this.db.client
+      .select({
+        name: orderItemsTable.name,
+        quantity: orderItemsTable.quantity,
+        unit_price: orderItemsTable.unit_price,
+      })
+      .from(orderItemsTable)
+      .where(eq(orderItemsTable.order_id, orderId));
+
+    return orderItems;
+  }
 
   async createMany(
     orderId: number,

@@ -2,9 +2,8 @@ import { IsEnum, IsInt, IsOptional } from 'class-validator';
 import { type ServiceType, ServiceTypeValues } from './service-type';
 import { type ServicePricing, ServicePricingValues } from './service-pricing';
 import { Type } from 'class-transformer';
-import { PaginationQueryDto } from 'src/common/dto';
 
-export class FindServicesQueryDto extends PaginationQueryDto {
+export class ServicesLookupQueryDto {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -12,9 +11,9 @@ export class FindServicesQueryDto extends PaginationQueryDto {
 
   @IsOptional()
   @IsEnum(ServiceTypeValues)
-  type: ServiceType;
+  type?: ServiceType;
 
   @IsOptional()
   @IsEnum(ServicePricingValues)
-  pricing_type: ServicePricing;
+  pricing_type?: ServicePricing;
 }

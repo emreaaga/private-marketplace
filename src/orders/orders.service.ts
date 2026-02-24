@@ -38,6 +38,20 @@ export class OrdersService {
     };
   }
 
+  async findOne(orderId: number) {
+    const order = await this.ordersRepo.findOne(orderId);
+
+    const { sender_id, receiver_id, ...summary } = order;
+
+    const [sender, receiver, orderItems] = await Promise.all([
+      this.clientsRepo.findOneWithPassports(sender_id),
+      this.clientsRepo.findOneWithPassports(receiver_id),
+      this.itemsRepo.findByOrderId(orderId),
+    ]);
+
+    return { sender, receiver, orderItems, summary };
+  }
+
   async create(dto: CreateOrderDto) {
     return this.db.client.transaction(async (tx) => {
       const senderId = await this.clientsRepo.create(dto.sender, tx);

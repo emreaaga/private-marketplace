@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { DbService } from 'src/db/db.service';
 import { clientPassportsTable } from 'src/db/schema';
 
@@ -23,5 +23,18 @@ export class ClientPassportsRepository {
       .limit(1);
 
     return row?.client_id ?? null;
+  }
+
+  async findByClientId(client_id: number) {
+    const clientPassports = await this.db.client
+      .select({
+        passport_number: clientPassportsTable.passport_number,
+      })
+      .from(clientPassportsTable)
+      .where(eq(clientPassportsTable.client_id, client_id))
+      .orderBy(desc(clientPassportsTable.id))
+      .limit(2);
+
+    return clientPassports;
   }
 }

@@ -5,13 +5,13 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Patch,
   UseGuards,
   Post,
   NotFoundException,
   Query,
+  Patch,
 } from '@nestjs/common';
-import { UpdateRoleDto, UpdateStatusDto, UsersQueryDto } from './dto';
+import { UsersQueryDto } from './dto';
 import { UsersService } from './users.service';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,21 +20,21 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @Post()
   async create(@Body() dto: CreateUserDto): Promise<object> {
     await this.usersService.create(dto);
     return { message: 'Successfully create user.' };
   }
 
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @Get()
   async findAll(@Query() query: UsersQueryDto): Promise<object> {
     const { data, pagination } = await this.usersService.findAll(query);
     return { data, pagination };
   }
 
-  @UseGuards(AccessTokenGuard)
+  // @UseGuards(AccessTokenGuard)
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const user = await this.usersService.findOne(id);
@@ -44,6 +44,13 @@ export class UsersController {
     }
 
     return { data: user };
+  }
+
+  //TODO Добавить логику обновления и dto для request body
+  @Patch(':id')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  update(@Param('id', ParseIntPipe) id: number) {
+    return { message: 'User updated.' };
   }
 
   @UseGuards(AccessTokenGuard)
@@ -56,25 +63,5 @@ export class UsersController {
     }
 
     return { message: 'User deleted.' };
-  }
-
-  @UseGuards(AccessTokenGuard)
-  @Patch(':id/status')
-  async updateStatus(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateStatusDto,
-  ) {
-    await this.usersService.updateStatus(id, dto.status);
-    return { message: 'Changed user status.' };
-  }
-
-  @UseGuards(AccessTokenGuard)
-  @Patch(':id/role')
-  async updateRole(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateRoleDto,
-  ) {
-    await this.usersService.updateRole(id, dto.role);
-    return { message: 'Changed user role.' };
   }
 }

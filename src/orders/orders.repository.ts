@@ -1,16 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { eq, desc, count } from 'drizzle-orm';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { eq, desc, count, type SQL, and } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { PaginatedResponse } from 'src/common/types';
 import type { OrderListItem } from './dto/order-list-item.dto';
 import { OrdersQueryDto } from './dto/orders-query.dto';
+import { OrderItemsRepository } from 'src/order-items/order-items.repository';
 
 import { DbService } from 'src/db/db.service';
 import { clientsTable, ordersTable } from 'src/db/schema';
 
 @Injectable()
 export class OrdersRepository {
-  constructor(private readonly db: DbService) {}
+  constructor(
+    private readonly db: DbService,
+    private readonly itemsRep: OrderItemsRepository,
+  ) {}
 
   async findAll(
     filters: OrdersQueryDto,
@@ -22,9 +26,18 @@ export class OrdersRepository {
     const sender = alias(clientsTable, 'sender');
     const receiver = alias(clientsTable, 'receiver');
 
+    const shipment_id = filters.shipment_id;
+
+    const whereConditions: SQL[] = [];
+
+    if (shipment_id) {
+      whereConditions.push(eq(ordersTable.shipment_id, shipment_id));
+    }
+
     const orders: OrderListItem[] = await this.db.client
       .select({
         id: ordersTable.id,
+        shipment_id: ordersTable.shipment_id,
 
         sender_name: sender.name,
         receiver_name: receiver.name,
@@ -39,15 +52,17 @@ export class OrdersRepository {
         created_at: ordersTable.created_at,
       })
       .from(ordersTable)
-      .leftJoin(sender, eq(ordersTable.sender_id, sender.id))
-      .leftJoin(receiver, eq(ordersTable.receiver_id, receiver.id))
+      .innerJoin(sender, eq(ordersTable.sender_id, sender.id))
+      .innerJoin(receiver, eq(ordersTable.receiver_id, receiver.id))
+      .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
       .orderBy(desc(ordersTable.created_at))
       .limit(limit)
       .offset(offset);
 
     const [{ count: total }] = await this.db.client
       .select({ count: count() })
-      .from(ordersTable);
+      .from(ordersTable)
+      .where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
 
     const totalPages = Math.ceil(total / limit);
 
@@ -62,6 +77,28 @@ export class OrdersRepository {
         hasPrev: page > 1,
       },
     };
+  }
+
+  async findOne(orderId: number) {
+    const [order] = await this.db.client
+      .select({
+        sender_id: ordersTable.sender_id,
+        receiver_id: ordersTable.receiver_id,
+        prepaid_amount: ordersTable.prepaid_amount,
+        extra_fee: ordersTable.extra_fee,
+        rate_per_kg: ordersTable.rate_per_kg,
+        shipment_id: ordersTable.shipment_id,
+        weight_kg: ordersTable.weight_kg,
+      })
+      .from(ordersTable)
+      .where(eq(ordersTable.id, orderId))
+      .limit(1);
+
+    if (!order) {
+      throw new NotFoundException(`Order with id ${orderId} not found`);
+    }
+
+    return order;
   }
 
   async create(
