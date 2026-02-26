@@ -6,6 +6,7 @@ import {
   numeric,
   text,
 } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 import { ordersTable } from './orders';
 import { shipmentsTable } from './shipments';
@@ -40,3 +41,21 @@ export const financialEventsTable = pgTable('financial_events', {
     .defaultNow()
     .notNull(),
 });
+
+export const financialEventsRelations = relations(
+  financialEventsTable,
+  ({ one }) => ({
+    order: one(ordersTable, {
+      fields: [financialEventsTable.order_id],
+      references: [ordersTable.id],
+    }),
+    shipment: one(shipmentsTable, {
+      fields: [financialEventsTable.shipment_id],
+      references: [shipmentsTable.id],
+    }),
+    flight: one(flightsTable, {
+      fields: [financialEventsTable.flight_id],
+      references: [flightsTable.id],
+    }),
+  }),
+);

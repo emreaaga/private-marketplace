@@ -12,6 +12,7 @@ import { relations } from 'drizzle-orm';
 import { shipmentsTable } from './shipments';
 import { companiesTable } from './companies';
 import { flightExpensesTable } from './flight-expenses';
+import { financialEventsTable } from './financial_events';
 
 export const flightStatusEnum = pgEnum('flight_status', [
   'planned',
@@ -100,4 +101,6 @@ export const flightsRelations = relations(flightsTable, ({ many, one }) => ({
   }),
 
   expenses: many(flightExpensesTable),
+
+  financialEvents: many(financialEventsTable),
 }));

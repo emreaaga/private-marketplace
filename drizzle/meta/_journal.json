@@ -64,6 +64,13 @@
       "when": 1770977129016,
       "tag": "0008_yielding_triton",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1772100831575,
+      "tag": "0009_fair_puff_adder",
+      "breakpoints": true
     }
   ]
 }

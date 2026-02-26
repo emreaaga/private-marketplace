@@ -11,6 +11,7 @@ import { clientsTable } from './clients';
 import { shipmentsTable } from './shipments';
 import { servicesTable } from './services';
 import { orderItemsTable } from './order_items';
+import { financialEventsTable } from './financial_events';
 
 export const orderStatusEnum = pgEnum('order_status', [
   'received', // принят
@@ -65,11 +66,13 @@ export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
   sender: one(clientsTable, {
     fields: [ordersTable.sender_id],
     references: [clientsTable.id],
+    relationName: 'sender',
   }),
 
   receiver: one(clientsTable, {
     fields: [ordersTable.receiver_id],
     references: [clientsTable.id],
+    relationName: 'receiver',
   }),
 
   service: one(servicesTable, {
@@ -78,4 +81,6 @@ export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
   }),
 
   items: many(orderItemsTable),
+
+  financialEvents: many(financialEventsTable),
 }));
