@@ -8,4 +8,4 @@ export * from './orders';
 export * from './order_items';
 export * from './flight-expenses';
 export * from './client_passports';
-export * from './financial_events';
+export * from './financial-events';

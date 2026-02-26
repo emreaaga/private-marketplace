@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { eq, desc, count, type SQL, and } from 'drizzle-orm';
+import { eq, desc, count, type SQL, and, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { PaginatedResponse } from 'src/common/types';
 import type { OrderListItem } from './dto/order-list-item.dto';
@@ -99,6 +99,25 @@ export class OrdersRepository {
     }
 
     return order;
+  }
+
+  async getSummary(orderId: number) {
+    const [orderSummary] = await this.db.client
+      .select({
+        total_amount: ordersTable.total_amount,
+        extra_fee: ordersTable.extra_fee,
+        prepaid_amount: ordersTable.prepaid_amount,
+        air_kg_price: ordersTable.weight_kg,
+        rate_per_kg: ordersTable.rate_per_kg,
+        balance:
+          sql<string>`(${ordersTable.total_amount} - ${ordersTable.prepaid_amount})::text`.mapWith(
+            String,
+          ),
+      })
+      .from(ordersTable)
+      .where(eq(ordersTable.id, orderId));
+
+    return orderSummary;
   }
 
   async create(

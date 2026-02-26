@@ -8,6 +8,7 @@ import { DbService } from 'src/db/db.service';
 import { PaginatedResponse } from 'src/common/types';
 import { OrdersQueryDto } from './dto/orders-query.dto';
 import { OrderItemsRepository } from 'src/order-items/order-items.repository';
+import { FinancialEventsRepository } from 'src/financial-events/financial-events.repository';
 
 @Injectable()
 export class OrdersService {
@@ -16,6 +17,7 @@ export class OrdersService {
     private readonly ordersRepo: OrdersRepository,
     private readonly itemsRepo: OrderItemsRepository,
     private readonly clientsRepo: ClientsRepository,
+    private readonly fEventrepo: FinancialEventsRepository,
   ) {}
 
   async findAll(dto: OrdersQueryDto): Promise<PaginatedResponse> {
@@ -67,6 +69,7 @@ export class OrdersService {
       const weight = dto.summary.weight_kg;
       const rate = dto.summary.rate_per_kg;
       const extraFee = dto.summary.extra_fee;
+
       const deposit = dto.summary.deposit;
 
       const subtotal = new Big(weight).times(rate).toFixed(2);
@@ -87,9 +90,34 @@ export class OrdersService {
         tx,
       );
 
+      if (new Big(extraFee).gt(0)) {
+        await this.fEventrepo.create(
+          orderId,
+          'additional',
+          extraFee,
+          'Допплата от клиента',
+          tx,
+        );
+      }
+
+      if (new Big(deposit).gt(0)) {
+        await this.fEventrepo.create(
+          orderId,
+          'prepayment',
+          deposit,
+          'Предоплата от клиента',
+          tx,
+        );
+      }
+
       await this.itemsRepo.createMany(orderId, items, tx);
 
       return { order_id: orderId };
     });
+  }
+
+  async getSummary(orderId: number) {
+    const data = await this.ordersRepo.getSummary(orderId);
+    return data;
   }
 }

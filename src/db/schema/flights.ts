@@ -12,7 +12,7 @@ import { relations } from 'drizzle-orm';
 import { shipmentsTable } from './shipments';
 import { companiesTable } from './companies';
 import { flightExpensesTable } from './flight-expenses';
-import { financialEventsTable } from './financial_events';
+import { financialEventsTable } from './financial-events';
 
 export const flightStatusEnum = pgEnum('flight_status', [
   'planned',

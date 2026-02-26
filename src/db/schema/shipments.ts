@@ -10,7 +10,7 @@ import { companiesTable } from './companies';
 import { relations } from 'drizzle-orm';
 import { flightsTable } from './flights';
 import { ordersTable } from './orders';
-import { financialEventsTable } from './financial_events';
+import { financialEventsTable } from './financial-events';
 
 export const shipmentsStatusEnum = pgEnum('shipment_status', [
   'draft',

@@ -5,12 +5,12 @@ import {
   Body,
   Query,
   Param,
-  ParseIntPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { OrdersQueryDto } from './dto/orders-query.dto';
+import { CreateOrderDto, OrdersQueryDto } from './dto';
 import { PaginatedResponse } from 'src/common/types';
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 
 @Controller('/orders')
 export class OrdersController {
@@ -28,8 +28,17 @@ export class OrdersController {
     return { data, pagination };
   }
 
+  @Get(':id/summary')
+  async getSummary(@Param('id', ParseIdPipe) id: number) {
+    const data = await this.ordersService.getSummary(id);
+
+    if (!data) throw new NotFoundException();
+
+    return { data };
+  }
+
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIdPipe) id: number) {
     const { summary, sender, receiver, orderItems } =
       await this.ordersService.findOne(id);
 

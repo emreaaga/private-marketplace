@@ -7,9 +7,16 @@ import { ClientsRepository } from 'src/clients/clients.repository';
 import { ClientsModule } from 'src/clients/clients.module';
 import { ClientPassportsModule } from 'src/client-passports/client-passports.module';
 import { OrderItemsModule } from 'src/order-items/order-items.module';
+import { FinancialEventsModule } from 'src/financial-events/financial-events.module';
 
 @Module({
-  imports: [DbModule, ClientsModule, ClientPassportsModule, OrderItemsModule],
+  imports: [
+    DbModule,
+    ClientsModule,
+    ClientPassportsModule,
+    OrderItemsModule,
+    FinancialEventsModule,
+  ],
   controllers: [OrdersController],
   providers: [OrdersRepository, OrdersService, ClientsRepository],
 })

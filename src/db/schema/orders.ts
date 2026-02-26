@@ -11,7 +11,7 @@ import { clientsTable } from './clients';
 import { shipmentsTable } from './shipments';
 import { servicesTable } from './services';
 import { orderItemsTable } from './order_items';
-import { financialEventsTable } from './financial_events';
+import { financialEventsTable } from './financial-events';
 
 export const orderStatusEnum = pgEnum('order_status', [
   'received', // принят
