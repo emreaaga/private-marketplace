@@ -1,15 +1,15 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayNotEmpty,
+  IsDefined,
   IsInt,
-  Min,
-  IsNumberString,
   IsISO8601,
   IsNotEmpty,
-  IsDefined,
-  ArrayNotEmpty,
+  IsNumberString,
+  Min,
   ValidateNested,
 } from 'class-validator';
-import { CountryCityDto } from './country.city.dto';
+import { CountryCityDto } from 'src/common/dto';
 
 export class CreateFlightDto {
   @ValidateNested()

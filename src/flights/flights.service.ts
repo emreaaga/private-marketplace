@@ -1,12 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PaginatedResponse } from 'src/common/types';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import Big from 'big.js';
+import { PaginatedResponse } from 'src/common/types';
 
-import { FlightsRepository } from './flights.repository';
-import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { DbService } from 'src/db/db.service';
 import { FlightExpensesRepository } from 'src/flight-expenses/flight-expenses.repository';
 import { ShipmentsRepository } from 'src/shipments/shipments.repository';
-import { DbService } from 'src/db/db.service';
+import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { FlightsRepository } from './flights.repository';
 
 @Injectable()
 export class FlightsService {
@@ -29,7 +33,7 @@ export class FlightsService {
       );
 
       if (updatedShipments.length !== dto.shipments.length) {
-        throw new Error('Некоторые отправки не были найдены или обновлены');
+        throw new BadRequestException('Некорректный список отправок');
       }
 
       const totalWeight = await this.shipmentsRep.getTotalWeightByShipmentIds(

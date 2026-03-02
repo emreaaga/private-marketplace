@@ -1,19 +1,17 @@
-import { IsString, IsEnum, Length } from 'class-validator';
+import { IsEnum, IsString, Length } from 'class-validator';
 import { type CompanyType, CompanyTypeValues } from './company-type';
 
 export class CreateCompanyDto {
-  @IsString()
+  @IsString({ message: 'Имя: только буквы' })
   @Length(2, 100)
   name: string;
 
-  @IsEnum(CompanyTypeValues)
+  @IsEnum(CompanyTypeValues, { message: 'Выберите корректный тип компании' })
   type: CompanyType;
 
-  @IsString()
-  @Length(2, 2)
+  @Length(2, 2, { message: 'Страна: код из 2 букв' })
   country: string;
 
-  @IsString()
-  @Length(3, 3)
+  @Length(3, 3, { message: 'Город: 3 буквы латиницей' })
   city: string;
 }

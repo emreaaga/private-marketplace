@@ -1,6 +1,11 @@
-import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
-import { Request, Response } from 'express';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
 import { DrizzleQueryError } from 'drizzle-orm';
+import { Response } from 'express';
 
 type PgError = {
   code?: string;
@@ -10,22 +15,70 @@ type PgError = {
 
 @Catch(DrizzleQueryError)
 export class DrizzlePgExceptionFilter implements ExceptionFilter {
+  private readonly errorMappings: Record<
+    string,
+    { status: number; message: string }
+  > = {
+    passport_country_unique: {
+      status: HttpStatus.CONFLICT,
+      message: 'Паспорт уже привязан к другому клиенту',
+    },
+    flights_air_partner_id_companies_id_fk: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Указанный авиа-партнер не найден',
+    },
+    flights_sender_customs_id_companies_id_fk: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Таможня отправителя не найдена',
+    },
+    flights_receiver_customs_id_companies_id_fk: {
+      status: HttpStatus.BAD_REQUEST,
+      message: 'Таможня получателя не найдена',
+    },
+  };
+
   catch(exception: DrizzleQueryError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
 
     const pg = exception.cause as unknown as PgError;
-    console.log(pg.constraint);
+    const constraint = pg?.constraint;
+    const code = pg?.code;
 
-    if (pg?.code !== '23505' || pg?.constraint !== 'passport_country_unique') {
-      throw exception;
+    if (constraint && this.errorMappings[constraint]) {
+      const { status, message } = this.errorMappings[constraint];
+
+      return res.status(status).json({
+        statusCode: status,
+        message,
+        error: code === '23505' ? 'Conflict' : 'Bad Request',
+      });
     }
-    const duplicatePassport = exception.params;
-    console.log(duplicatePassport);
 
-    res.status(409).json({
-      statusCode: 409,
-      message: 'Паспорт уже привязан к другому клиенту',
+    if (code === '23503') {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Ошибка: указанная связанная запись не существует',
+      });
+    }
+
+    if (code === '23505') {
+      return res.status(HttpStatus.CONFLICT).json({
+        statusCode: HttpStatus.CONFLICT,
+        message: 'Запись с такими данными уже существует',
+      });
+    }
+
+    console.error('Unhandled Database Error:', {
+      code: pg?.code,
+      constraint: pg?.constraint,
+      message: exception.message,
+      params: exception.params,
+    });
+
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Внутренняя ошибка базы данных',
     });
   }
 }
