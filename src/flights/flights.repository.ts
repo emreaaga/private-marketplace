@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DbService } from 'src/db/db.service';
-import {
-  flightsTable,
-  companiesTable,
-  shipmentsTable,
-  ordersTable,
-} from 'src/db/schema';
-import { eq, sql, desc, count, sum } from 'drizzle-orm';
+import { flightsTable, shipmentsTable, ordersTable } from 'src/db/schema';
+import { eq, sql, desc, count, sum, countDistinct } from 'drizzle-orm';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
 import { PaginatedResponse } from 'src/common/types';
 import { DbTransaction } from 'src/db/db.types';
@@ -53,14 +48,12 @@ export class FlightsRepository {
     const flightStats = this.db.client
       .select({
         flight_id: shipmentsTable.flight_id,
+        total_shipments: countDistinct(shipmentsTable.id).as('total_shipments'),
         total_prepaid: sum(ordersTable.prepaid_amount).as('total_prepaid'),
-        total_remaining:
-          sql<string>`sum(${ordersTable.total_amount}) - sum(${ordersTable.prepaid_amount})`.as(
-            'total_remaining',
-          ),
+        total_amount: sum(ordersTable.total_amount).as('total_amount'),
       })
-      .from(ordersTable)
-      .innerJoin(shipmentsTable, eq(ordersTable.shipment_id, shipmentsTable.id))
+      .from(shipmentsTable)
+      .innerJoin(ordersTable, eq(ordersTable.shipment_id, shipmentsTable.id))
       .groupBy(shipmentsTable.flight_id)
       .as('flight_stats');
 
@@ -68,20 +61,16 @@ export class FlightsRepository {
       .select({
         id: flightsTable.id,
         route: sql<string>`upper(${flightsTable.from_city}) || '→' || upper(${flightsTable.to_city})`,
-        air_partner_name: companiesTable.name,
         air_kg_price: flightsTable.air_kg_price,
         final_gross_weight_kg: flightsTable.final_gross_weight_kg,
         status: flightsTable.status,
         arrival_at: flightsTable.arrival_at,
 
+        total_shipments: sql<string>`coalesce(${flightStats.total_shipments}, '0')`,
         prepaid_sum: sql<string>`coalesce(${flightStats.total_prepaid}, '0')`,
-        remaining_sum: sql<string>`coalesce(${flightStats.total_remaining}, '0')`,
+        remaining_sum: sql<string>`coalesce(${flightStats.total_amount}, '0')::numeric - coalesce(${flightStats.total_prepaid}, '0')::numeric`,
       })
       .from(flightsTable)
-      .innerJoin(
-        companiesTable,
-        eq(flightsTable.air_partner_id, companiesTable.id),
-      )
       .leftJoin(flightStats, eq(flightsTable.id, flightStats.flight_id))
       .orderBy(desc(flightsTable.created_at), desc(flightsTable.id))
       .limit(limit)
