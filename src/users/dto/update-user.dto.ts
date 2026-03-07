@@ -2,70 +2,70 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsEmail,
   IsIn,
-  IsInt,
   IsOptional,
   IsString,
   Length,
   Matches,
-  Min,
   ValidateNested,
 } from 'class-validator';
-
 import { REGEX } from 'src/common/constants/regex.constants';
 import { CountryCityDistrictDto } from 'src/common/dto';
 import {
   normalizeCapitalized,
   normalizeTrimmed,
 } from 'src/common/utils/string.utils';
-import { UserRoleValues, type UserRoles } from './user-roles';
+import { type UserRoles, UserRoleValues } from './user-roles';
 
-export class CreateUserDto {
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  company_id: number;
+export class UpdateUserDto {
+  @IsOptional()
+  @IsIn(UserRoleValues, { message: 'Некорректный роль' })
+  role?: UserRoles;
 
-  @IsString()
+  @IsOptional()
   @Transform(({ value }) => normalizeCapitalized(value))
+  @IsString()
   @Length(2, 100)
   @Matches(REGEX.PERSON_NAME, { message: 'Имя: только буквы' })
-  name: string;
+  name?: string;
 
+  @IsOptional()
   @Transform(({ value }) => normalizeCapitalized(value))
   @IsString()
   @Length(2, 100)
   @Matches(REGEX.PERSON_NAME, { message: 'Фамилия: только буквы' })
-  surname: string;
+  surname?: string;
 
+  @IsOptional()
   @IsEmail({}, { message: 'Некорректный формат email' })
-  email: string;
+  email?: string;
 
+  @IsOptional()
+  @IsString()
+  @Length(8, 100, { message: 'Пароль должен быть не менее 8 символов' })
+  password?: string;
+
+  @IsOptional()
   @ValidateNested()
   @Type(() => CountryCityDistrictDto)
-  location: CountryCityDistrictDto;
-
-  @IsString()
-  @Length(8, 100)
-  password: string;
+  location?: CountryCityDistrictDto;
 
   @IsOptional()
   @Transform(({ value }) => normalizeTrimmed(value))
   @IsString()
   @Length(0, 255)
-  address_line: string;
+  address_line?: string;
 
+  @IsOptional()
   @Transform(({ value }) => normalizeTrimmed(value))
   @IsString()
   @Matches(REGEX.PHONE_COUNTRY_CODE, {
     message: 'Код страны: 1-4 цифры без символов',
   })
-  phone_country_code: string;
+  phone_code?: string;
 
+  @IsOptional()
   @Transform(({ value }) => normalizeTrimmed(value))
   @IsString()
   @Matches(REGEX.PHONE_NUMBER, { message: 'Номер: 5-20 цифр' })
-  phone_number: string;
-
-  @IsIn(UserRoleValues)
-  role: UserRoles;
+  phone_number?: string;
 }

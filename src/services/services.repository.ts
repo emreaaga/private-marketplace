@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { InferInsertModel, and, count, desc, eq, type SQL } from 'drizzle-orm';
+import { PaginatedResponse } from 'src/common/types';
 import { DbService } from 'src/db/db.service';
 import { companiesTable, servicesTable } from 'src/db/schema';
-import { InferInsertModel, eq, and, type SQL, count, desc } from 'drizzle-orm';
-import { ServicesQueryDto, ServicesLookupQueryDto } from './dto';
-import { PaginatedResponse } from 'src/common/types';
+import { ServicesLookupQueryDto, ServicesQueryDto } from './dto';
 
 export type ServiceInsert = InferInsertModel<typeof servicesTable>;
 
@@ -11,14 +11,21 @@ export type ServiceInsert = InferInsertModel<typeof servicesTable>;
 export class ServicesRepository {
   constructor(private readonly dbService: DbService) {}
 
-  async findAll(filters: ServicesQueryDto): Promise<PaginatedResponse> {
+  async findAll(
+    filters: ServicesQueryDto,
+    cid?: number,
+  ): Promise<PaginatedResponse> {
     const { company_id, type, pricing_type, page } = filters;
     const limit = 10;
     const offset = (page - 1) * limit;
 
     const whereConditions: SQL[] = [];
 
-    if (company_id) {
+    if (cid) {
+      whereConditions.push(eq(servicesTable.company_id, cid));
+    }
+
+    if (company_id && !cid) {
       whereConditions.push(eq(servicesTable.company_id, company_id));
     }
 

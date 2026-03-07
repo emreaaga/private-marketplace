@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { UsersRepository } from './users.repository';
-import { CreateUser } from './dto/types/create-user.types';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PasswordService } from 'src/common/services';
-import { UsersQueryDto } from './dto';
+import {
+  type AllUserRoles,
+  CreateUserDto,
+  UpdateUserDto,
+  UsersQueryDto,
+} from './dto';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
@@ -11,7 +15,7 @@ export class UsersService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async create(dto: CreateUser) {
+  async create(dto: CreateUserDto) {
     const hashedPassword = await this.passwordService.hashPassword(
       dto.password,
     );
@@ -20,8 +24,25 @@ export class UsersService {
     await this.usersRepository.create(dto);
   }
 
-  async findAll(query: UsersQueryDto) {
-    const data = await this.usersRepository.allUsers(query);
+  async update(userId: number, dto: UpdateUserDto) {
+    if (dto.password) {
+      dto.password = await this.passwordService.hashPassword(dto.password);
+    }
+    const updatedUser = await this.usersRepository.update(userId, dto);
+
+    if (!updatedUser) {
+      throw new NotFoundException('Пользователь не найден');
+    }
+  }
+
+  async findAll(
+    query: UsersQueryDto,
+    companyId?: number,
+    userRole?: AllUserRoles,
+  ) {
+    const targetCompanyId = userRole === 'admin' ? undefined : companyId;
+
+    const data = await this.usersRepository.allUsers(query, targetCompanyId);
 
     return data;
   }
@@ -30,7 +51,7 @@ export class UsersService {
     const user = await this.usersRepository.oneUser(id);
 
     if (!user) {
-      return;
+      throw new NotFoundException('Пользователь не найден');
     }
 
     return user;
@@ -38,6 +59,9 @@ export class UsersService {
 
   async deleteUser(id: number) {
     const result = await this.usersRepository.deleteUser(id);
-    return result;
+
+    if (!result) {
+      throw new NotFoundException('User not found!');
+    }
   }
 }

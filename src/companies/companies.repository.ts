@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { and, count, desc, eq, ne } from 'drizzle-orm';
+import { PaginatedResponse } from 'src/common/types';
 import { DbService } from 'src/db/db.service';
 import { companiesTable } from 'src/db/schema';
 import {
-  CreateCompanyDto,
-  CompaniesQueryDto,
   CompaniesLookupQueryDto,
+  CompaniesQueryDto,
   CompanyType,
+  CompanyUpdateDto,
+  CreateCompanyDto,
 } from './dto';
-import { eq, ne, desc, count, and } from 'drizzle-orm';
-import { PaginatedResponse } from 'src/common/types';
 
 @Injectable()
 export class CompaniesRepository {
@@ -67,7 +68,12 @@ export class CompaniesRepository {
   }
 
   async create(dto: CreateCompanyDto) {
-    await this.db.client.insert(companiesTable).values(dto);
+    await this.db.client.insert(companiesTable).values({
+      name: dto.name,
+      type: dto.type,
+      country: dto.location.country,
+      city: dto.location.city,
+    });
   }
 
   async findOne(id: number) {
@@ -99,5 +105,26 @@ export class CompaniesRepository {
       );
 
     return totalPostal;
+  }
+
+  async update(companyId: number, dto: CompanyUpdateDto) {
+    const updateData: Partial<typeof companiesTable.$inferInsert> = {
+      name: dto.name,
+      type: dto.type,
+      is_active: dto.is_active,
+    };
+
+    if (dto.location) {
+      updateData.country = dto.location.country;
+      updateData.city = dto.location.city;
+    }
+
+    const [updatedCompany] = await this.db.client
+      .update(companiesTable)
+      .set(updateData)
+      .where(eq(companiesTable.id, companyId))
+      .returning();
+
+    return updatedCompany;
   }
 }

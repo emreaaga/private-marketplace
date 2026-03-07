@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { CompaniesController } from './companies.controller';
-import { CompaniesService } from './companies.service';
-import { CompaniesRepository } from './companies.repository';
+import { CommonModule } from 'src/common/common.module';
 import { DbModule } from 'src/db/db.module';
+import { CompaniesController } from './companies.controller';
+import { CompaniesRepository } from './companies.repository';
+import { CompaniesService } from './companies.service';
 
 @Module({
-  imports: [DbModule],
+  imports: [DbModule, CommonModule],
   controllers: [CompaniesController],
   providers: [CompaniesService, CompaniesRepository],
   exports: [CompaniesRepository],

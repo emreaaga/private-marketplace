@@ -1,9 +1,9 @@
-import type { JwtAccessToken } from '@/auth/dto/types';
+import { AccessTokenPayload } from 'src/common/types';
 
 declare global {
   namespace Express {
     interface Request {
-      user?: JwtAccessToken;
+      user?: AccessTokenPayload;
     }
   }
 }

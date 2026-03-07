@@ -1,13 +1,27 @@
-import { IsString, Length, IsNotEmpty } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsString, Length, Matches } from 'class-validator';
+import { REGEX } from 'src/common/constants/regex.constants';
+import { normalizeLowerTrimmed } from 'src/common/utils/string.utils';
 
 export class CountryCityDto {
+  @Transform(({ value }) => normalizeLowerTrimmed(value))
   @IsString()
-  @Length(2, 2)
-  @IsNotEmpty()
+  @Matches(REGEX.COUNTRY_ISO, {
+    message: 'Страна: код из 2 букв',
+  })
   country: string;
 
+  @Transform(({ value }) => normalizeLowerTrimmed(value))
   @IsString()
-  @Length(3, 3)
-  @IsNotEmpty()
+  @Matches(REGEX.CITY_ISO, {
+    message: 'Город: 3 буквы латиницей',
+  })
   city: string;
+}
+
+export class CountryCityDistrictDto extends CountryCityDto {
+  @Transform(({ value }) => normalizeLowerTrimmed(value))
+  @IsString()
+  @Length(1, 50)
+  district: string;
 }

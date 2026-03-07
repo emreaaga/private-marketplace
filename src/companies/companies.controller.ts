@@ -1,20 +1,23 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
   Param,
-  ParseIntPipe,
-  Query,
   Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
+import { PaginatedResponse } from 'src/common/types';
 import { CompaniesService } from './companies.service';
 import {
-  CreateCompanyDto,
-  CompaniesQueryDto,
   CompaniesLookupQueryDto,
+  CompaniesQueryDto,
+  CompanyUpdateDto,
+  CreateCompanyDto,
 } from './dto';
-import { PaginatedResponse } from 'src/common/types';
 
 @Controller('companies')
 export class CompaniesController {
@@ -29,6 +32,7 @@ export class CompaniesController {
     };
   }
 
+  @UseGuards(AccessTokenGuard)
   @Get()
   async findAll(@Query() dto: CompaniesQueryDto): Promise<PaginatedResponse> {
     const { data, pagination } = await this.companiesService.findAll(dto);
@@ -41,15 +45,18 @@ export class CompaniesController {
     return { data };
   }
 
-  //TODO Добавить логику обновления и dto для request body
   @Patch(':id')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  update(@Param('id', ParseIntPipe) id: number) {
+  async update(
+    @Param('id', ParseIdPipe) companyId: number,
+    @Body() dto: CompanyUpdateDto,
+  ) {
+    await this.companiesService.update(companyId, dto);
     return { message: 'Company updated.' };
   }
 
+  @UseGuards(AccessTokenGuard)
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIdPipe) id: number) {
     const data = await this.companiesService.findOne(id);
     return { data };
   }

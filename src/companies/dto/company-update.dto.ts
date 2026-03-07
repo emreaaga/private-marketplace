@@ -1,6 +1,8 @@
 import { Transform, Type } from 'class-transformer';
 import {
-  IsEnum,
+  IsBoolean,
+  IsIn,
+  IsOptional,
   IsString,
   Length,
   Matches,
@@ -11,17 +13,24 @@ import { CountryCityDto } from 'src/common/dto';
 import { normalizeCapitalized } from 'src/common/utils/string.utils';
 import { type CompanyType, CompanyTypeValues } from './company-type';
 
-export class CreateCompanyDto {
+export class CompanyUpdateDto {
+  @IsOptional()
   @Transform(({ value }) => normalizeCapitalized(value))
   @IsString()
   @Length(2, 100)
   @Matches(REGEX.PERSON_NAME, { message: 'Название: только буквы' })
-  name: string;
+  name?: string;
 
-  @IsEnum(CompanyTypeValues, { message: 'Выберите корректный тип компании' })
-  type: CompanyType;
+  @IsOptional()
+  @IsIn(CompanyTypeValues, { message: 'Некорректный тип фирмы	' })
+  type?: CompanyType;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => CountryCityDto)
-  location: CountryCityDto;
+  location?: CountryCityDto;
+
+  @IsOptional()
+  @IsBoolean()
+  is_active?: boolean;
 }

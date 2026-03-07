@@ -1,3 +1,6 @@
+import { type AllCompanyType } from 'src/companies/dto/company-type';
+import { type AllUserRoles } from 'src/users/dto';
+
 export type CreatedUser = {
   id: number;
   email: string;
@@ -5,9 +8,12 @@ export type CreatedUser = {
 
 export type UserByEmail = {
   id: number;
-  email: string;
+  name: string;
   password: string;
-  role: string;
+  role: AllUserRoles;
+  company_id: number;
+  company_name: string;
+  company_type: AllCompanyType;
 };
 
 export type UserById = {

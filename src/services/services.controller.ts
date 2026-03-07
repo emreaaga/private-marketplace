@@ -1,27 +1,36 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Query,
-  Param,
-  Patch,
-  ParseIntPipe,
   NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ServicesService } from './services.service';
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import { User } from 'src/common/decorators/get-user.decorator';
+import { type AccessTokenPayload } from 'src/common/types';
 import {
   CreateServiceDto,
-  ServicesQueryDto,
   ServicesLookupQueryDto,
+  ServicesQueryDto,
 } from './dto';
+import { ServicesService } from './services.service';
 
 @Controller('/services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
+
+  @UseGuards(AccessTokenGuard)
   @Get()
-  async findAll(@Query() dto: ServicesQueryDto) {
-    const result = await this.servicesService.findAll(dto);
+  async findAll(
+    @Query() dto: ServicesQueryDto,
+    @User() user: AccessTokenPayload,
+  ) {
+    const result = await this.servicesService.findAll(dto, user.cid, user.role);
     return result;
   }
 
@@ -31,6 +40,7 @@ export class ServicesController {
     return { data };
   }
 
+  @UseGuards(AccessTokenGuard)
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const data = await this.servicesService.findOne(id);

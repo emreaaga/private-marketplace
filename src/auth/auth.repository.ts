@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import { DbService } from 'src/db/db.service';
 import { usersTable } from 'src/db/schema';
-import { CreatedUser, UserByEmail, UserById } from './dto/types/user.types';
+import { CreatedUser, UserById } from './dto/types/user.types';
 
 @Injectable()
 export class AuthRepository {
@@ -23,20 +23,6 @@ export class AuthRepository {
       email: 'test@gmail.com',
     };
     return newUser;
-  }
-
-  async findUserByEmail(email: string): Promise<UserByEmail | undefined> {
-    const [user] = await this.db.client
-      .select({
-        id: usersTable.id,
-        email: usersTable.email,
-        password: usersTable.password_hash,
-        role: usersTable.role,
-      })
-      .from(usersTable)
-      .where(eq(usersTable.email, email));
-
-    return user;
   }
 
   async findUserById(id: number): Promise<UserById | undefined> {

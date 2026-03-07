@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CompaniesRepository } from './companies.repository';
 import {
-  CreateCompanyDto,
-  CompaniesQueryDto,
   CompaniesLookupQueryDto,
+  CompaniesQueryDto,
+  CompanyUpdateDto,
+  CreateCompanyDto,
 } from './dto';
 
 @Injectable()
@@ -27,5 +28,18 @@ export class CompaniesService {
 
   async create(dto: CreateCompanyDto) {
     await this.companiesRepository.create(dto);
+  }
+
+  async update(companyId: number, dto: CompanyUpdateDto) {
+    const updatedCompany = await this.companiesRepository.update(
+      companyId,
+      dto,
+    );
+
+    if (!updatedCompany) {
+      throw new NotFoundException('Фирма не найдена');
+    }
+
+    return updatedCompany;
   }
 }

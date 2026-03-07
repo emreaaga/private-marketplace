@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PasswordService, TokenService } from 'src/common/services';
+import { UsersRepository } from 'src/users/users.repository';
 import { AuthRepository } from './auth.repository';
 import { LoginDto, RegisterDto } from './dto';
 // import { LoginTokens } from './dto/types';
@@ -15,10 +17,11 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
+    private readonly usersRep: UsersRepository,
   ) {}
 
   async register(dto: RegisterDto) {
-    const user = await this.authRepository.findUserByEmail(dto.email);
+    const user = await this.usersRep.findUserByEmail(dto.email);
 
     if (user) throw new ConflictException('This email is already registered.');
 
@@ -27,23 +30,25 @@ export class AuthService {
     this.authRepository.createUser(dto.name, dto.email, password_hash);
   }
 
-  async login(dto: LoginDto): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    user: { id: number; role: string };
-  }> {
-    const user = await this.authRepository.findUserByEmail(dto.email);
+  async login(dto: LoginDto) {
+    const rawUser = await this.usersRep.findUserByEmail(dto.email);
 
-    if (!user) throw new BadRequestException('Email or password is wrong');
+    if (!rawUser) throw new BadRequestException('Email or password is wrong');
+
+    const { password, ...user } = rawUser;
 
     const result = await this.passwordService.comparePassword(
       dto.password,
-      user.password,
+      password,
     );
 
     if (!result) throw new BadRequestException('Email or password is wrong');
 
-    const accessPayload = { sub: user.id, role: user.role };
+    const accessPayload = {
+      sub: user.id,
+      role: user.role,
+      cid: user.company_id,
+    };
     const refreshPayload = { sub: user.id };
 
     const accessToken =
@@ -55,10 +60,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: {
-        id: user.id,
-        role: user.role,
-      },
+      user,
     };
   }
 
@@ -69,23 +71,32 @@ export class AuthService {
     try {
       const payload = await this.tokenService.verifyRefreshToken(refreshToken);
 
-      const user = await this.authRepository.findUserById(payload.sub);
+      const user = await this.usersRep.findUserById(payload.sub);
+
       if (!user) throw new UnauthorizedException('User not found');
 
-      const accessPayload = { sub: user.id, role: user.role };
+      const accessPayload = {
+        sub: user.id,
+        role: user.role,
+        cid: user.company_id,
+      };
 
       const accessToken =
         await this.tokenService.generateAccessToken(accessPayload);
 
-      return {
-        accessToken,
-        user: {
-          id: user.id,
-          role: user.role,
-        },
-      };
+      return { accessToken, user };
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }
+  }
+
+  async getMe(userId: number) {
+    const user = await this.usersRep.findUserById(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return user;
   }
 }

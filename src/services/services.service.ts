@@ -1,18 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import { ServicesRepository } from './services.repository';
+import { type AllUserRoles } from 'src/users/dto';
 import {
   CreateServiceDto,
-  ServicesQueryDto,
   ServicesLookupQueryDto,
+  ServicesQueryDto,
 } from './dto';
-import { ServiceInsert } from './services.repository';
+import { ServiceInsert, ServicesRepository } from './services.repository';
 
 @Injectable()
 export class ServicesService {
   constructor(private readonly servicesRepository: ServicesRepository) {}
 
-  async findAll(filters: ServicesQueryDto) {
-    const services = await this.servicesRepository.findAll(filters);
+  async findAll(
+    filters: ServicesQueryDto,
+    cid: number,
+    userRole: AllUserRoles,
+  ) {
+    const targetCompanyId = userRole === 'admin' ? undefined : cid;
+
+    const services = await this.servicesRepository.findAll(
+      filters,
+      targetCompanyId,
+    );
     return services;
   }
 

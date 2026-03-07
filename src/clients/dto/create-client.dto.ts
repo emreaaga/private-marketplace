@@ -8,24 +8,18 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { CreateClientPassportDto } from 'src/client-passports/dto/create-passport.dto';
+import { REGEX } from 'src/common/constants/regex.constants';
 import {
   normalizeCapitalized,
   normalizeTrimmed,
   normalizeUpperTrimmed,
 } from 'src/common/utils/string.utils';
 
-const PERSON_NAME_RE = /^[\p{L}]+(?:[- '][\p{L}]+)*$/u;
-const COUNTRY_ISO2_RE = /^[A-Z]{2}$/;
-const PHONE_COUNTRY_CODE_RE = /^\d{1,4}$/;
-const PHONE_NUMBER_RE = /^\d{5,20}$/;
-const CITY_CODE_RE = /^[A-Z]{3}$/;
-const DISTRICT_ONE_WORD_RE = /^[A-Za-z]+$/;
-
 export class CreateClientDto {
   @Transform(({ value }) => normalizeCapitalized(value))
   @IsString()
   @Length(2, 100)
-  @Matches(PERSON_NAME_RE, {
+  @Matches(REGEX.PERSON_NAME, {
     message: 'Имя: только буквы',
   })
   name: string;
@@ -33,21 +27,21 @@ export class CreateClientDto {
   @Transform(({ value }) => normalizeCapitalized(value))
   @IsString()
   @Length(2, 100)
-  @Matches(PERSON_NAME_RE, {
+  @Matches(REGEX.PERSON_NAME, {
     message: 'Фамилия: только буквы',
   })
   surname: string;
 
   @Transform(({ value }) => normalizeUpperTrimmed(value))
   @IsString()
-  @Matches(COUNTRY_ISO2_RE, {
+  @Matches(REGEX.COUNTRY_ISO2, {
     message: 'Страна: код из 2 букв (TR, UZ)',
   })
   country: string;
 
   @Transform(({ value }) => normalizeUpperTrimmed(value))
   @IsString()
-  @Matches(CITY_CODE_RE, {
+  @Matches(REGEX.CITY_CODE, {
     message: 'Город: 3 буквы латиницей (TAS)',
   })
   city: string;
@@ -55,7 +49,7 @@ export class CreateClientDto {
   @Transform(({ value }) => normalizeTrimmed(value))
   @IsString()
   @Length(1, 50)
-  @Matches(DISTRICT_ONE_WORD_RE, {
+  @Matches(REGEX.DISTRICT_ONE_WORD, {
     message: 'Район: только буквы',
   })
   district: string;
@@ -68,14 +62,14 @@ export class CreateClientDto {
 
   @Transform(({ value }) => normalizeTrimmed(value))
   @IsString()
-  @Matches(PHONE_COUNTRY_CODE_RE, {
+  @Matches(REGEX.PHONE_COUNTRY_CODE, {
     message: 'Код страны: 1-4 цифры',
   })
   phone_country_code: string;
 
   @Transform(({ value }) => normalizeTrimmed(value))
   @IsString()
-  @Matches(PHONE_NUMBER_RE, {
+  @Matches(REGEX.PHONE_NUMBER, {
     message: 'Номер: 5-20 цифр',
   })
   phone_number: string;
