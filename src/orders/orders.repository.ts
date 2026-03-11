@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { eq, desc, count, type SQL, and, sql } from 'drizzle-orm';
+import { and, count, desc, eq, sql, type SQL } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { PaginatedResponse } from 'src/common/types';
+import { OrderItemsRepository } from 'src/order-items/order-items.repository';
 import type { OrderListItem } from './dto/order-list-item.dto';
 import { OrdersQueryDto } from './dto/orders-query.dto';
-import { OrderItemsRepository } from 'src/order-items/order-items.repository';
 
+import { calculatePagination } from 'src/common/utils/pagination.util';
 import { DbService } from 'src/db/db.service';
 import { clientsTable, ordersTable } from 'src/db/schema';
 
@@ -18,6 +19,7 @@ export class OrdersRepository {
 
   async findAll(
     filters: OrdersQueryDto,
+    companyId: number | undefined,
   ): Promise<PaginatedResponse<OrderListItem>> {
     const page = filters.page;
     const limit = 10;
@@ -29,6 +31,10 @@ export class OrdersRepository {
     const shipment_id = filters.shipment_id;
 
     const whereConditions: SQL[] = [];
+
+    if (companyId) {
+      whereConditions.push(eq(ordersTable.company_id, companyId));
+    }
 
     if (shipment_id) {
       whereConditions.push(eq(ordersTable.shipment_id, shipment_id));
@@ -64,18 +70,9 @@ export class OrdersRepository {
       .from(ordersTable)
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
 
-    const totalPages = Math.ceil(total / limit);
-
     return {
       data: orders,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      pagination: calculatePagination(page, total, limit),
     };
   }
 
@@ -131,6 +128,7 @@ export class OrdersRepository {
       prepaid_amount: string;
       total_amount: string;
       extra_fee: string;
+      company_id: number;
     },
     dbOrTx = this.db.client,
   ) {

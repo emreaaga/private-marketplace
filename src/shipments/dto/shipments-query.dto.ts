@@ -1,5 +1,5 @@
-import { IsEnum, IsInt, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsEnum, IsInt, IsOptional } from 'class-validator';
 import { PaginationQueryDto } from 'src/common/dto';
 
 import {

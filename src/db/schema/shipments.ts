@@ -6,11 +6,11 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-import { companiesTable } from './companies';
 import { relations } from 'drizzle-orm';
+import { companiesTable } from './companies';
+import { financialEventsTable } from './financial-events';
 import { flightsTable } from './flights';
 import { ordersTable } from './orders';
-import { financialEventsTable } from './financial-events';
 
 export const shipmentsStatusEnum = pgEnum('shipment_status', [
   'draft',
@@ -40,7 +40,7 @@ export const shipmentsTable = pgTable('shipments', {
 });
 
 export const shipmentRelations = relations(shipmentsTable, ({ one, many }) => ({
-  company: one(companiesTable, {
+  shipment: one(companiesTable, {
     fields: [shipmentsTable.company_id],
     references: [companiesTable.id],
   }),

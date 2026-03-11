@@ -48,7 +48,9 @@ export class AuthService {
       sub: user.id,
       role: user.role,
       cid: user.company_id,
+      ctype: user.company_type,
     };
+
     const refreshPayload = { sub: user.id };
 
     const accessToken =
@@ -79,6 +81,7 @@ export class AuthService {
         sub: user.id,
         role: user.role,
         cid: user.company_id,
+        ctype: user.company_type,
       };
 
       const accessToken =

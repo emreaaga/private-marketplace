@@ -6,6 +6,7 @@ import {
 import Big from 'big.js';
 import { PaginatedResponse } from 'src/common/types';
 
+import { type AllCompanyType } from 'src/companies/dto/company-type';
 import { DbService } from 'src/db/db.service';
 import { FlightExpensesRepository } from 'src/flight-expenses/flight-expenses.repository';
 import { ShipmentsRepository } from 'src/shipments/shipments.repository';
@@ -55,9 +56,20 @@ export class FlightsService {
     });
   }
 
-  async findAll(dto: FlightsQueryDto): Promise<PaginatedResponse> {
-    const data = await this.flightsRepository.findAll(dto);
-    return data;
+  async findAll(
+    dto: FlightsQueryDto,
+    companyId: number,
+    companyType: AllCompanyType,
+  ): Promise<PaginatedResponse> {
+    if (companyType === 'platform') {
+      return await this.flightsRepository.findAllAdmin(dto);
+    }
+
+    return await this.flightsRepository.findAllForRole(
+      dto,
+      companyId,
+      companyType,
+    );
   }
 
   async getSummary(flightId: number) {

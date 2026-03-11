@@ -1,24 +1,24 @@
+import { relations } from 'drizzle-orm';
 import {
+  boolean,
   integer,
+  numeric,
   pgEnum,
   pgTable,
   timestamp,
-  numeric,
   varchar,
-  boolean,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
 
-import { shipmentsTable } from './shipments';
 import { companiesTable } from './companies';
-import { flightExpensesTable } from './flight-expenses';
 import { financialEventsTable } from './financial-events';
+import { flightExpensesTable } from './flight-expenses';
+import { shipmentsTable } from './shipments';
 
 export const flightStatusEnum = pgEnum('flight_status', [
-  'planned',
-  'departed',
-  'arrived',
-  'closed',
+  'planned', // Запланирован
+  'departed', // Вылетел
+  'arrived', // Прибыл
+  'closed', // Закрыт
 ]);
 
 export const flightsTable = pgTable('flights', {

@@ -1,25 +1,54 @@
-import { Controller, Post, Get, Body, Query, Param } from '@nestjs/common';
-import { ShipmentsService } from './shipments.service';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import { AccessGuard } from 'src/auth/guards/access.guard';
+import { CompanyTypes } from 'src/common/decorators/company-types.decorator';
+import { User } from 'src/common/decorators/get-user.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { type AccessTokenPayload, PaginatedResponse } from 'src/common/types';
 import {
   CreateShipmentDto,
-  ShipmentsQueryDto,
   ShipmentsLookupQueryDto,
+  ShipmentsQueryDto,
 } from './dto';
-import { PaginatedResponse } from 'src/common/types';
+import { ShipmentsService } from './shipments.service';
 
+@UseGuards(AccessTokenGuard, AccessGuard)
 @Controller('/shipments')
 export class ShipmentsController {
   constructor(private readonly shipmentsService: ShipmentsService) {}
 
   @Get()
-  async findAll(@Query() dto: ShipmentsQueryDto): Promise<PaginatedResponse> {
-    const { data, pagination } = await this.shipmentsService.findAll(dto);
+  @Roles('admin', 'company_owner')
+  @CompanyTypes('platform', 'postal', 'customs_broker')
+  async findAll(
+    @Query() dto: ShipmentsQueryDto,
+    @User() user: AccessTokenPayload,
+  ): Promise<PaginatedResponse> {
+    const { data, pagination } = await this.shipmentsService.findAll(
+      dto,
+      user.cid,
+      user.ctype,
+    );
+
     return { data, pagination };
   }
 
+  @Roles('admin', 'company_owner')
+  @CompanyTypes('platform', 'postal')
   @Get('/lookup')
-  async lookup(@Query() dto: ShipmentsLookupQueryDto) {
-    const data = await this.shipmentsService.lookup(dto);
+  async lookup(
+    @Query() dto: ShipmentsLookupQueryDto,
+    @User() user: AccessTokenPayload,
+  ) {
+    const data = await this.shipmentsService.lookup(dto, user.cid, user.ctype);
     return { data };
   }
 
@@ -30,8 +59,13 @@ export class ShipmentsController {
   }
 
   @Post()
-  async create(@Body() dto: CreateShipmentDto) {
-    await this.shipmentsService.create(dto);
+  @Roles('admin', 'company_owner')
+  @CompanyTypes('platform', 'postal')
+  async create(
+    @Body() dto: CreateShipmentDto,
+    @User() user: AccessTokenPayload,
+  ) {
+    await this.shipmentsService.create(dto, user.cid, user.ctype);
     return { message: 'shipment created!' };
   }
 }

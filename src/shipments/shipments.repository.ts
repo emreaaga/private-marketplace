@@ -1,33 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, sql, type SQL, desc, count, sum, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, sql, sum, type SQL } from 'drizzle-orm';
+import { PaginatedResponse } from 'src/common/types';
+import { calculatePagination } from 'src/common/utils/pagination.util';
+import { DbService } from 'src/db/db.service';
+import { DbTransaction } from 'src/db/db.types';
+import { companiesTable, ordersTable, shipmentsTable } from 'src/db/schema';
 import {
-  ShipmentsQueryDto,
   CreateShipmentDto,
   ShipmentsLookupQueryDto,
+  ShipmentsQueryDto,
+  ShipmentsStatus,
 } from './dto';
-import { shipmentsTable, companiesTable, ordersTable } from 'src/db/schema';
-import { DbService } from 'src/db/db.service';
-import { PaginatedResponse } from 'src/common/types';
-import { DbTransaction } from 'src/db/db.types';
-import { ShipmentsStatus } from './dto';
 
 @Injectable()
 export class ShipmentsRepository {
   constructor(private readonly db: DbService) {}
 
   async findAll(filters: ShipmentsQueryDto): Promise<PaginatedResponse> {
-    const { status, company_id, flight_id, page } = filters;
+    const { status, flight_id, page, company_id } = filters;
     const limit = 10;
     const offset = (page - 1) * limit;
 
     const whereConditions: SQL[] = [];
 
-    if (status) {
-      whereConditions.push(eq(shipmentsTable.status, status));
-    }
-
     if (company_id) {
       whereConditions.push(eq(shipmentsTable.company_id, company_id));
+    }
+
+    if (status) {
+      whereConditions.push(eq(shipmentsTable.status, status));
     }
 
     if (flight_id) {
@@ -76,18 +77,9 @@ export class ShipmentsRepository {
       .from(shipmentsTable)
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined);
 
-    const totalPages = Math.ceil(total / limit);
-
     return {
       data,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
+      pagination: calculatePagination(page, total, limit),
     };
   }
 
@@ -126,6 +118,18 @@ export class ShipmentsRepository {
       .limit(10);
 
     return data;
+  }
+
+  async findStatusById(
+    shipmentId: number,
+  ): Promise<ShipmentsStatus | undefined> {
+    const [row] = await this.db.client
+      .select({ status: shipmentsTable.status })
+      .from(shipmentsTable)
+      .where(eq(shipmentsTable.id, shipmentId))
+      .limit(1);
+
+    return row?.status;
   }
 
   async findByFlightId(flightId: number) {
@@ -230,5 +234,15 @@ export class ShipmentsRepository {
 
   async create(dto: CreateShipmentDto) {
     await this.db.client.insert(shipmentsTable).values(dto);
+  }
+
+  async findCidByShipmentId(shipmentId: number): Promise<number | null> {
+    const [data] = await this.db.client
+      .select({ companyId: shipmentsTable.company_id })
+      .from(shipmentsTable)
+      .where(eq(shipmentsTable.id, shipmentId))
+      .limit(1);
+
+    return data?.companyId ?? null;
   }
 }

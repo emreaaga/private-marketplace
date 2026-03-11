@@ -1,9 +1,6 @@
-import { type AllUserRoles } from 'src/users/dto';
+import { JwtAccessToken } from 'src/auth/dto/types';
 
-export interface AccessTokenPayload {
-  sub: number;
-  role: AllUserRoles;
-  cid: number;
+export interface AccessTokenPayload extends JwtAccessToken {
   iat?: number;
   exp?: number;
 }

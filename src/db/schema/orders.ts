@@ -1,17 +1,18 @@
+import { relations } from 'drizzle-orm';
 import {
   integer,
+  numeric,
   pgEnum,
   pgTable,
   timestamp,
-  numeric,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
 
 import { clientsTable } from './clients';
-import { shipmentsTable } from './shipments';
-import { servicesTable } from './services';
-import { orderItemsTable } from './order_items';
+import { companiesTable } from './companies';
 import { financialEventsTable } from './financial-events';
+import { orderItemsTable } from './order_items';
+import { servicesTable } from './services';
+import { shipmentsTable } from './shipments';
 
 export const orderStatusEnum = pgEnum('order_status', [
   'received', // принят
@@ -23,6 +24,10 @@ export const orderStatusEnum = pgEnum('order_status', [
 
 export const ordersTable = pgTable('orders', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+
+  company_id: integer('company_id')
+    .notNull()
+    .references(() => companiesTable.id),
 
   shipment_id: integer('shipment_id')
     .notNull()
@@ -58,6 +63,11 @@ export const ordersTable = pgTable('orders', {
 });
 
 export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
+  company: one(companiesTable, {
+    fields: [ordersTable.company_id],
+    references: [companiesTable.id],
+  }),
+
   shipment: one(shipmentsTable, {
     fields: [ordersTable.shipment_id],
     references: [shipmentsTable.id],

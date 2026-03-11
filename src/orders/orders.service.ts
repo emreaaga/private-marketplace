@@ -1,14 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import Big from 'big.js';
 
-import { OrdersRepository } from './orders.repository';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { ClientsRepository } from 'src/clients/clients.repository';
-import { DbService } from 'src/db/db.service';
 import { PaginatedResponse } from 'src/common/types';
-import { OrdersQueryDto } from './dto/orders-query.dto';
-import { OrderItemsRepository } from 'src/order-items/order-items.repository';
+import { type AllCompanyType } from 'src/companies/dto/company-type';
+import { DbService } from 'src/db/db.service';
 import { FinancialEventsRepository } from 'src/financial-events/financial-events.repository';
+import { OrderItemsRepository } from 'src/order-items/order-items.repository';
+import { ShipmentsStatus } from 'src/shipments/dto';
+import { ShipmentsRepository } from 'src/shipments/shipments.repository';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { OrdersQueryDto } from './dto/orders-query.dto';
+import { OrdersRepository } from './orders.repository';
 
 @Injectable()
 export class OrdersService {
@@ -18,13 +21,37 @@ export class OrdersService {
     private readonly itemsRepo: OrderItemsRepository,
     private readonly clientsRepo: ClientsRepository,
     private readonly fEventrepo: FinancialEventsRepository,
+    private readonly shipmentsRep: ShipmentsRepository,
   ) {}
 
-  async findAll(dto: OrdersQueryDto): Promise<PaginatedResponse> {
-    const result = await this.ordersRepo.findAll(dto);
+  async findAll(
+    dto: OrdersQueryDto,
+    companyId: number,
+    companyType: AllCompanyType,
+  ): Promise<PaginatedResponse> {
+    let shipmentStatus: ShipmentsStatus | undefined;
+
+    if (dto.shipment_id) {
+      const status = await this.shipmentsRep.findStatusById(dto.shipment_id);
+
+      if (!status) {
+        throw new NotFoundException('Отправка  не найдена');
+      }
+
+      shipmentStatus = status;
+    }
+
+    let targetCompanyId: number | undefined;
+
+    if (companyType === 'postal') {
+      targetCompanyId = companyId;
+    }
+
+    const result = await this.ordersRepo.findAll(dto, targetCompanyId);
 
     return {
       ...result,
+      shipment_status: shipmentStatus,
       data: result.data.map((o) => ({
         id: o.id,
         sender_name: o.sender_name,
@@ -54,7 +81,25 @@ export class OrdersService {
     return { sender, receiver, orderItems, summary };
   }
 
-  async create(dto: CreateOrderDto) {
+  async create(
+    dto: CreateOrderDto,
+    companyType: AllCompanyType,
+    currentCompanyId: number,
+  ) {
+    let targetCompanyId = currentCompanyId;
+
+    if (companyType === 'platform') {
+      const foundCid = await this.shipmentsRep.findCidByShipmentId(
+        dto.summary.shipment_id,
+      );
+
+      if (!foundCid) {
+        throw new NotFoundException('Отправка не найдена');
+      }
+
+      targetCompanyId = foundCid;
+    }
+
     return this.db.client.transaction(async (tx) => {
       const senderId = await this.clientsRepo.create(dto.sender, tx);
       const receiverId = await this.clientsRepo.create(dto.receiver, tx);
@@ -86,6 +131,7 @@ export class OrdersService {
           prepaid_amount: new Big(deposit).toFixed(2),
           total_amount: total,
           extra_fee: extraFee,
+          company_id: targetCompanyId,
         },
         tx,
       );

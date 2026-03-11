@@ -71,6 +71,13 @@
       "when": 1772100831575,
       "tag": "0009_fair_puff_adder",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1773140024058,
+      "tag": "0010_spotty_changeling",
+      "breakpoints": true
     }
   ]
 }

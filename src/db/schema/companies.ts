@@ -7,11 +7,12 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core';
 
-import { usersTable } from './users';
 import { relations } from 'drizzle-orm';
+import { flightsTable } from './flights';
+import { ordersTable } from './orders';
 import { servicesTable } from './services';
 import { shipmentsTable } from './shipments';
-import { flightsTable } from './flights';
+import { usersTable } from './users';
 
 export const companyTypeEnum = pgEnum('company_type', [
   'platform',
@@ -41,6 +42,7 @@ export const companiesRelations = relations(companiesTable, ({ many }) => ({
   users: many(usersTable),
   services: many(servicesTable),
   shipments: many(shipmentsTable),
+  orders: many(ordersTable),
   airPartnerFlights: many(flightsTable, {
     relationName: 'airPartner',
   }),

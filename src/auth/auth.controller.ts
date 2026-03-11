@@ -88,8 +88,13 @@ export class AuthController {
 
   // Временно отключен, в будущем нужно будет включить
   @Post('register')
-  async register(@Body() dto: RegisterDto): Promise<object> {
-    await this.authService.register(dto);
-    return { message: 'User registered successfully.' };
+  register(@Body() dto: RegisterDto): object {
+    return {
+      message: 'User registered successfully.',
+      data: {
+        name: dto.email,
+        email: dto.email,
+      },
+    };
   }
 }
