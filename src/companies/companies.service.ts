@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { UsersRepository } from 'src/users/users.repository';
 import { CompaniesRepository } from './companies.repository';
 import {
   CompaniesLookupQueryDto,
@@ -9,7 +10,10 @@ import {
 
 @Injectable()
 export class CompaniesService {
-  constructor(private readonly companiesRepository: CompaniesRepository) {}
+  constructor(
+    private readonly companiesRepository: CompaniesRepository,
+    private readonly usersRep: UsersRepository,
+  ) {}
 
   async findAll(filters: CompaniesQueryDto) {
     const data = await this.companiesRepository.findAll(filters);
@@ -21,9 +25,18 @@ export class CompaniesService {
     return data;
   }
 
-  async findOne(id: number) {
-    const company = await this.companiesRepository.findOne(id);
-    return company;
+  async findOne(companyId: number) {
+    const company = await this.companiesRepository.findOne(companyId);
+
+    if (!company) {
+      throw new NotFoundException('Фирма не найдена');
+    }
+
+    const employees = await this.usersRep.findAllByCompanyId(companyId);
+    const totalEmployees =
+      await this.usersRep.findEmployeesByCompanyId(companyId);
+
+    return { company, employees, totalEmployees };
   }
 
   async create(dto: CreateCompanyDto) {

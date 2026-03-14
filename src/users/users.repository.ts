@@ -201,4 +201,30 @@ export class UsersRepository {
 
     return totalUsers;
   }
+
+  async findAllByCompanyId(companyId: number) {
+    const employees = await this.db.client
+      .select({
+        id: usersTable.id,
+        name: usersTable.name,
+        role: usersTable.role,
+        status: usersTable.status,
+      })
+      .from(usersTable)
+      .where(eq(usersTable.company_id, companyId))
+      .limit(10);
+
+    return employees;
+  }
+
+  async findEmployeesByCompanyId(companyId: number) {
+    const [{ count: totalEmployees }] = await this.db.client
+      .select({
+        count: count(),
+      })
+      .from(usersTable)
+      .where(eq(usersTable.company_id, companyId));
+
+    return totalEmployees;
+  }
 }

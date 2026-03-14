@@ -56,8 +56,9 @@ export class CompaniesController {
 
   @UseGuards(AccessTokenGuard)
   @Get(':id')
-  async findOne(@Param('id', ParseIdPipe) id: number) {
-    const data = await this.companiesService.findOne(id);
-    return { data };
+  async findOne(@Param('id', ParseIdPipe) companyId: number) {
+    const { company, employees, totalEmployees } =
+      await this.companiesService.findOne(companyId);
+    return { data: company, totalEmployees, employees };
   }
 }
