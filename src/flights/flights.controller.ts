@@ -71,8 +71,8 @@ export class FlightsController {
 
   //TODO нужно создать DTO + реализовать обновление рейса
   @Put(':id')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(@Param('id', ParseIntPipe) id: number) {
+    console.log(id);
     return { message: 'Flight updated' };
   }
 }

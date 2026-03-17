@@ -62,10 +62,12 @@ export class OrdersController {
       await this.ordersService.findOne(id);
 
     return {
-      sender,
-      receiver,
-      orderItems,
-      summary,
+      data: {
+        sender,
+        receiver,
+        orderItems,
+        summary,
+      },
     };
   }
 }
