@@ -60,7 +60,7 @@ export class CompaniesRepository {
     const companies = await this.db.client
       .select({ id: companiesTable.id, name: companiesTable.name })
       .from(companiesTable)
-      .where(whereCondition)
+      .where(and(whereCondition, eq(companiesTable.is_active, true)))
       .orderBy(desc(companiesTable.created_at), desc(companiesTable.id))
       .limit(100);
 

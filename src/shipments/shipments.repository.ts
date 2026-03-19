@@ -178,6 +178,7 @@ export class ShipmentsRepository {
       .select({
         id: shipmentsTable.id,
         company_name: companiesTable.name,
+        company_id: companiesTable.id,
         flight_id: shipmentsTable.flight_id,
         route: sql<string>`
         upper(${shipmentsTable.from_country}) || '→' || upper(${shipmentsTable.to_country})`,

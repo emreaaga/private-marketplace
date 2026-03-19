@@ -5,7 +5,7 @@ import {
   ServicesLookupQueryDto,
   ServicesQueryDto,
 } from './dto';
-import { ServiceInsert, ServicesRepository } from './services.repository';
+import { ServicesRepository } from './services.repository';
 
 @Injectable()
 export class ServicesService {
@@ -36,13 +36,6 @@ export class ServicesService {
   }
 
   async create(dto: CreateServiceDto) {
-    const insertData: ServiceInsert = {
-      company_id: dto.company_id,
-      type: dto.type,
-      pricing_type: dto.pricing_type,
-      price: dto.price.toString(),
-    };
-
-    await this.servicesRepository.create(insertData);
+    await this.servicesRepository.create(dto);
   }
 }

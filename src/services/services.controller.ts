@@ -11,7 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AccessTokenGuard } from 'src/auth/guards/access-token.guard';
+import { AccessGuard } from 'src/auth/guards/access.guard';
+import { CompanyTypes } from 'src/common/decorators/company-types.decorator';
 import { User } from 'src/common/decorators/get-user.decorator';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { type AccessTokenPayload } from 'src/common/types';
 import {
   CreateServiceDto,
@@ -20,11 +23,13 @@ import {
 } from './dto';
 import { ServicesService } from './services.service';
 
+@UseGuards(AccessTokenGuard, AccessGuard)
+@Roles('admin', 'company_owner')
+@CompanyTypes('platform', 'postal', 'customs_broker', 'airline', 'air_partner')
 @Controller('/services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
-  @UseGuards(AccessTokenGuard)
   @Get()
   async findAll(
     @Query() dto: ServicesQueryDto,
@@ -40,7 +45,6 @@ export class ServicesController {
     return { data };
   }
 
-  @UseGuards(AccessTokenGuard)
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     const data = await this.servicesService.findOne(id);
