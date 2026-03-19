@@ -8,7 +8,7 @@ import { OrdersQueryDto } from './dto/orders-query.dto';
 
 import { calculatePagination } from 'src/common/utils/pagination.util';
 import { DbService } from 'src/db/db.service';
-import { clientsTable, ordersTable } from 'src/db/schema';
+import { clientsTable, companiesTable, ordersTable } from 'src/db/schema';
 
 @Injectable()
 export class OrdersRepository {
@@ -44,6 +44,7 @@ export class OrdersRepository {
       .select({
         id: ordersTable.id,
         shipment_id: ordersTable.shipment_id,
+        company_name: companiesTable.name,
 
         sender_name: sender.name,
         receiver_name: receiver.name,
@@ -60,6 +61,7 @@ export class OrdersRepository {
       .from(ordersTable)
       .innerJoin(sender, eq(ordersTable.sender_id, sender.id))
       .innerJoin(receiver, eq(ordersTable.receiver_id, receiver.id))
+      .innerJoin(companiesTable, eq(ordersTable.company_id, companiesTable.id))
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
       .orderBy(desc(ordersTable.created_at))
       .limit(limit)

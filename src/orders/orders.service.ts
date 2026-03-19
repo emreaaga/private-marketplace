@@ -54,6 +54,7 @@ export class OrdersService {
       shipment_status: shipmentStatus,
       data: result.data.map((o) => ({
         id: o.id,
+        company_name: o.company_name,
         sender_name: o.sender_name,
         receiver_name: o.receiver_name,
         weight_kg: o.weight_kg,

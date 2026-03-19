@@ -1,5 +1,6 @@
 export interface OrderListItem {
   id: number;
+  company_name: string;
   sender_name: string | null;
   receiver_name: string | null;
   weight_kg: string;
