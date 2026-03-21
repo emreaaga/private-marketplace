@@ -23,12 +23,12 @@ import {
 } from './dto';
 
 @UseGuards(AccessTokenGuard, AccessGuard)
+@Roles('admin')
+@CompanyTypes('platform')
 @Controller('companies')
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
-  @Roles('admin')
-  @CompanyTypes('platform')
   @Post()
   async create(@Body() dto: CreateCompanyDto): Promise<object> {
     await this.companiesService.create(dto);
@@ -38,24 +38,18 @@ export class CompaniesController {
     };
   }
 
-  @Roles('admin')
-  @CompanyTypes('platform')
   @Get()
   async findAll(@Query() dto: CompaniesQueryDto): Promise<PaginatedResponse> {
     const { data, pagination } = await this.companiesService.findAll(dto);
     return { data, pagination };
   }
 
-  @Roles('admin')
-  @CompanyTypes('platform')
   @Get('lookup')
   async lookup(@Query() dto: CompaniesLookupQueryDto): Promise<object> {
     const data = await this.companiesService.lookup(dto);
     return { data };
   }
 
-  @Roles('admin')
-  @CompanyTypes('platform')
   @Patch(':id')
   async update(
     @Param('id', ParseIdPipe) companyId: number,
@@ -65,8 +59,6 @@ export class CompaniesController {
     return { message: 'Company updated.' };
   }
 
-  @Roles('admin')
-  @CompanyTypes('platform')
   @Get(':id')
   async findOne(@Param('id', ParseIdPipe) companyId: number) {
     const { company, employees, totalEmployees } =

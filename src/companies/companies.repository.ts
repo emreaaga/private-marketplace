@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, count, desc, eq, ne } from 'drizzle-orm';
+import { and, count, desc, eq, ne, SQL } from 'drizzle-orm';
 import { PaginatedResponse } from 'src/common/types';
 import { DbService } from 'src/db/db.service';
 import { companiesTable } from 'src/db/schema';
@@ -53,14 +53,23 @@ export class CompaniesRepository {
   }
 
   async lookup(filters: CompaniesLookupQueryDto): Promise<object> {
-    const whereCondition = filters.type
-      ? eq(companiesTable.type, filters.type)
-      : ne(companiesTable.type, 'platform');
+    const { type, country } = filters;
+    const whereCondition: SQL[] = [];
+
+    whereCondition.push(ne(companiesTable.type, 'platform'));
+
+    if (type) {
+      whereCondition.push(eq(companiesTable.type, type));
+    }
+
+    if (country) {
+      whereCondition.push(eq(companiesTable.country, country));
+    }
 
     const companies = await this.db.client
       .select({ id: companiesTable.id, name: companiesTable.name })
       .from(companiesTable)
-      .where(and(whereCondition, eq(companiesTable.is_active, true)))
+      .where(whereCondition.length > 0 ? and(...whereCondition) : undefined)
       .orderBy(desc(companiesTable.created_at), desc(companiesTable.id))
       .limit(100);
 

@@ -164,7 +164,8 @@ export class FlightsRepository {
         created_at: flightsTable.created_at,
       })
       .from(flightsTable)
-      .where(eq(flightsTable.id, flightId));
+      .where(eq(flightsTable.id, flightId))
+      .limit(1);
 
     return flight;
   }

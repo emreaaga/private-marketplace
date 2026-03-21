@@ -38,6 +38,10 @@ export class ShipmentsRepository {
     const data = await this.db.client
       .select({
         id: shipmentsTable.id,
+        public_id: sql<string>`
+		      LPAD(${shipmentsTable.company_id}::text, 3, '0') || '-' ||
+		      LPAD(${shipmentsTable.internal_number}::text, 5, '0')
+      	`,
         company_name: companiesTable.name,
         flight_id: shipmentsTable.flight_id,
         route: sql<string>`
@@ -111,7 +115,7 @@ export class ShipmentsRepository {
             `,
       })
       .from(shipmentsTable)
-      .leftJoin(ordersTable, eq(ordersTable.shipment_id, shipmentsTable.id))
+      .innerJoin(ordersTable, eq(ordersTable.shipment_id, shipmentsTable.id))
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
       .groupBy(shipmentsTable.id)
       .orderBy(desc(shipmentsTable.created_at), desc(shipmentsTable.id))
@@ -145,8 +149,8 @@ export class ShipmentsRepository {
         total_remaining: sql<string>`COALESCE(SUM(${ordersTable.total_amount} - ${ordersTable.prepaid_amount}), 0)`,
       })
       .from(shipmentsTable)
-      .leftJoin(ordersTable, eq(ordersTable.shipment_id, shipmentsTable.id))
-      .leftJoin(
+      .innerJoin(ordersTable, eq(ordersTable.shipment_id, shipmentsTable.id))
+      .innerJoin(
         companiesTable,
         eq(companiesTable.id, shipmentsTable.company_id),
       )

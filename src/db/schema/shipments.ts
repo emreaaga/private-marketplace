@@ -3,6 +3,7 @@ import {
   pgEnum,
   pgTable,
   timestamp,
+  uniqueIndex,
   varchar,
 } from 'drizzle-orm/pg-core';
 
@@ -20,24 +21,34 @@ export const shipmentsStatusEnum = pgEnum('shipment_status', [
   'closed', // полностью обработана
 ]);
 
-export const shipmentsTable = pgTable('shipments', {
-  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+export const shipmentsTable = pgTable(
+  'shipments',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    internal_number: integer('internal_number').notNull().default(0),
 
-  company_id: integer('company_id')
-    .notNull()
-    .references(() => companiesTable.id),
+    company_id: integer('company_id')
+      .notNull()
+      .references(() => companiesTable.id),
 
-  flight_id: integer('flight_id').references(() => flightsTable.id),
+    flight_id: integer('flight_id').references(() => flightsTable.id),
 
-  from_country: varchar('from_country', { length: 2 }).notNull(),
-  to_country: varchar('to_country', { length: 2 }).notNull(),
+    from_country: varchar('from_country', { length: 2 }).notNull(),
+    to_country: varchar('to_country', { length: 2 }).notNull(),
 
-  status: shipmentsStatusEnum().notNull().default('draft'),
+    status: shipmentsStatusEnum().notNull().default('draft'),
 
-  created_at: timestamp('created_at', { withTimezone: false })
-    .defaultNow()
-    .notNull(),
-});
+    created_at: timestamp('created_at', { withTimezone: false })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex('company_shipment_number_idx').on(
+      table.company_id,
+      table.internal_number,
+    ),
+  ],
+);
 
 export const shipmentRelations = relations(shipmentsTable, ({ one, many }) => ({
   shipment: one(companiesTable, {

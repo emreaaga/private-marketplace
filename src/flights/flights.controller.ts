@@ -68,6 +68,8 @@ export class FlightsController {
   @Roles('admin', 'company_owner')
   @CompanyTypes('platform', 'customs_broker')
   async updateStatus() {}
+  // tete528@gmail.com
+  // VPy%TyCUHya3
 
   //TODO нужно создать DTO + реализовать обновление рейса
   @Put(':id')

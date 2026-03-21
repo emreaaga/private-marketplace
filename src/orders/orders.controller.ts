@@ -33,7 +33,7 @@ export class OrdersController {
 
   @Get()
   @Roles('admin', 'company_owner')
-  @CompanyTypes('platform', 'postal')
+  @CompanyTypes('platform', 'postal', 'customs_broker')
   async findAll(
     @Query() dto: OrdersQueryDto,
     @User() user: AccessTokenPayload,
@@ -45,7 +45,7 @@ export class OrdersController {
 
   @Get(':id/summary')
   @Roles('admin', 'company_owner')
-  @CompanyTypes('platform', 'postal')
+  @CompanyTypes('platform', 'postal', 'customs_broker')
   async getSummary(@Param('id', ParseIdPipe) id: number) {
     const data = await this.ordersService.getSummary(id);
 
@@ -56,7 +56,7 @@ export class OrdersController {
 
   @Get(':id')
   @Roles('admin', 'company_owner')
-  @CompanyTypes('platform', 'postal')
+  @CompanyTypes('platform', 'postal', 'customs_broker')
   async findOne(@Param('id', ParseIdPipe) id: number) {
     const { summary, sender, receiver, orderItems } =
       await this.ordersService.findOne(id);
