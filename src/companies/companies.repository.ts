@@ -76,13 +76,18 @@ export class CompaniesRepository {
     return companies;
   }
 
-  async create(dto: CreateCompanyDto) {
-    await this.db.client.insert(companiesTable).values({
-      name: dto.name,
-      type: dto.type,
-      country: dto.location.country,
-      city: dto.location.city,
-    });
+  async create(dto: CreateCompanyDto, dbOrTx = this.db.client) {
+    const [companyId] = await dbOrTx
+      .insert(companiesTable)
+      .values({
+        name: dto.name,
+        type: dto.type,
+        country: dto.location.country,
+        city: dto.location.city,
+      })
+      .returning({ companyId: companiesTable.id });
+
+    return companyId.companyId;
   }
 
   async findOne(id: number) {

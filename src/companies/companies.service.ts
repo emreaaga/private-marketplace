@@ -1,4 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { BranchesRepository } from 'src/branches/branches.repository';
+import { DbService } from 'src/db/db.service';
 import { UsersRepository } from 'src/users/users.repository';
 import { CompaniesRepository } from './companies.repository';
 import {
@@ -13,6 +15,8 @@ export class CompaniesService {
   constructor(
     private readonly companiesRepository: CompaniesRepository,
     private readonly usersRep: UsersRepository,
+    private readonly branchesRep: BranchesRepository,
+    private readonly db: DbService,
   ) {}
 
   async findAll(filters: CompaniesQueryDto) {
@@ -40,7 +44,17 @@ export class CompaniesService {
   }
 
   async create(dto: CreateCompanyDto) {
-    await this.companiesRepository.create(dto);
+    await this.db.client.transaction(async (tx) => {
+      const companyId = await this.companiesRepository.create(dto, tx);
+      await this.branchesRep.create(
+        companyId,
+        'Главный филиал',
+        dto.location.country,
+        dto.location.city,
+        true,
+        tx,
+      );
+    });
   }
 
   async update(companyId: number, dto: CompanyUpdateDto) {

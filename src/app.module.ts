@@ -2,18 +2,19 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from './auth/auth.module';
-import { DbModule } from './db/db.module';
-import { UsersModule } from './users/users.module';
-import { CompaniesModule } from './companies/companies.module';
-import { ServicesModule } from './services/services.module';
-import { FlightsModule } from './flights/flights.module';
-import { ShipmentsModule } from './shipments/shipments.module';
+import { BranchesModule } from './branches/branches.module';
 import { ClientsModule } from './clients/clients.module';
-import { OrdersModule } from './orders/orders.module';
-import { OrderItemsModule } from './order-items/order-items.module';
-import { FlightExpensesModule } from './flight-expenses/flight-expenses.module';
+import { CompaniesModule } from './companies/companies.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { DbModule } from './db/db.module';
 import { FinancialEventsModule } from './financial-events/financial-events.module';
+import { FlightExpensesModule } from './flight-expenses/flight-expenses.module';
+import { FlightsModule } from './flights/flights.module';
+import { OrderItemsModule } from './order-items/order-items.module';
+import { OrdersModule } from './orders/orders.module';
+import { ServicesModule } from './services/services.module';
+import { ShipmentsModule } from './shipments/shipments.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { FinancialEventsModule } from './financial-events/financial-events.modul
     FlightExpensesModule,
     DashboardModule,
     FinancialEventsModule,
+    BranchesModule,
   ],
 })
 export class AppModule {}

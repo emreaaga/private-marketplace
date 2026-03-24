@@ -5,6 +5,7 @@ export const REGEX = {
   PHONE_COUNTRY_CODE: /^\d{1,4}$/,
   PHONE_NUMBER: /^\d{5,20}$/,
   DISTRICT_ONE_WORD: /^[A-Za-z]+$/,
+  ENTITY_NAME: /^[\p{L}\d]+(?:[- '][\p{L}\d]+)*$/u,
 
   // Старые, их нужно в будущем убрать
   COUNTRY_ISO2: /^[A-Z]{2}$/,

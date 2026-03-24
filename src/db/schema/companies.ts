@@ -8,6 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 
 import { relations } from 'drizzle-orm';
+import { branchesTable } from './branches';
 import { flightsTable } from './flights';
 import { ordersTable } from './orders';
 import { servicesTable } from './services';
@@ -39,6 +40,7 @@ export const companiesTable = pgTable('companies', {
 });
 
 export const companiesRelations = relations(companiesTable, ({ many }) => ({
+  branches: many(branchesTable),
   users: many(usersTable),
   services: many(servicesTable),
   shipments: many(shipmentsTable),

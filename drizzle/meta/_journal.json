@@ -106,6 +106,20 @@
       "when": 1774167051801,
       "tag": "0014_same_brood",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1774347656001,
+      "tag": "0016_pretty_golden_guardian",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1774355059757,
+      "tag": "0017_tense_madrox",
+      "breakpoints": true
     }
   ]
 }

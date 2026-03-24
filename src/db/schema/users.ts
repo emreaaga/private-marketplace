@@ -1,3 +1,4 @@
+import { relations } from 'drizzle-orm';
 import {
   integer,
   pgEnum,
@@ -5,8 +6,8 @@ import {
   timestamp,
   varchar,
 } from 'drizzle-orm/pg-core';
+import { branchesTable } from './branches';
 import { companiesTable } from './companies';
-import { relations } from 'drizzle-orm';
 
 export const userRoleEnum = pgEnum('role', ['admin', 'company_owner']);
 export const userStatusEnum = pgEnum('user_status', [
@@ -21,6 +22,8 @@ export const usersTable = pgTable('users', {
   company_id: integer('company_id')
     .notNull()
     .references(() => companiesTable.id),
+
+  branch_id: integer('branch_id').references(() => branchesTable.id),
 
   name: varchar('name', { length: 100 }).notNull(),
   surname: varchar('surname', { length: 100 }).notNull(),
@@ -52,5 +55,10 @@ export const usersRelations = relations(usersTable, ({ one }) => ({
   company: one(companiesTable, {
     fields: [usersTable.company_id],
     references: [companiesTable.id],
+  }),
+
+  branch: one(branchesTable, {
+    fields: [usersTable.branch_id],
+    references: [branchesTable.id],
   }),
 }));

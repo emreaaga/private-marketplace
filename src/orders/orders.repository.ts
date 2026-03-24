@@ -137,7 +137,10 @@ export class OrdersRepository {
   ) {
     const [row] = await dbOrTx
       .insert(ordersTable)
-      .values(values)
+      .values({
+        ...values,
+        destination_branch_id: 1,
+      })
       .returning({ order_id: ordersTable.id });
 
     return row.order_id;

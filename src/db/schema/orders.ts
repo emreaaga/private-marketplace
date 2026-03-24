@@ -8,6 +8,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
+import { branchesTable } from './branches';
 import { clientsTable } from './clients';
 import { companiesTable } from './companies';
 import { financialEventsTable } from './financial-events';
@@ -28,6 +29,10 @@ export const ordersTable = pgTable(
   {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
     internal_number: integer('internal_number').notNull().default(0),
+
+    destination_branch_id: integer('destination_branch_id')
+      .notNull()
+      .references(() => branchesTable.id),
 
     company_id: integer('company_id')
       .notNull()
@@ -80,6 +85,11 @@ export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
   company: one(companiesTable, {
     fields: [ordersTable.company_id],
     references: [companiesTable.id],
+  }),
+
+  destinationBranch: one(branchesTable, {
+    fields: [ordersTable.destination_branch_id],
+    references: [branchesTable.id],
   }),
 
   shipment: one(shipmentsTable, {
