@@ -106,6 +106,7 @@ export class ShipmentsRepository {
     const data = await this.db.client
       .select({
         id: shipmentsTable.id,
+        internal_number: shipmentsTable.internal_number,
         orders_count: sql<number>`count(${ordersTable.id})`,
         total_weight_kg: sql<number>`coalesce(sum(${ordersTable.weight_kg}), 0)`,
         total_prepaid: sql<number>`coalesce(sum(${ordersTable.prepaid_amount}), 0)`,
@@ -140,6 +141,7 @@ export class ShipmentsRepository {
     return await this.db.client
       .select({
         id: shipmentsTable.id,
+        internal_number: shipmentsTable.internal_number,
         company_id: shipmentsTable.company_id,
         company_name: companiesTable.name,
         orders_count: sql<number>`count(${ordersTable.id})`,
@@ -148,6 +150,7 @@ export class ShipmentsRepository {
         total_prepaid: sql<string>`COALESCE(SUM(${ordersTable.prepaid_amount}), 0)`,
         total_remaining: sql<string>`COALESCE(SUM(${ordersTable.total_amount} - ${ordersTable.prepaid_amount}), 0)`,
       })
+
       .from(shipmentsTable)
       .innerJoin(ordersTable, eq(ordersTable.shipment_id, shipmentsTable.id))
       .innerJoin(

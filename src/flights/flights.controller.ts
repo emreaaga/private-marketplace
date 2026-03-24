@@ -4,7 +4,6 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Patch,
   Post,
   Put,
   Query,
@@ -17,6 +16,7 @@ import { User } from 'src/common/decorators/get-user.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { type AccessTokenPayload, PaginatedResponse } from 'src/common/types';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { UpdateFlightDto } from './dto/update-flight.dto';
 import { FlightsService } from './flights.service';
 
 @UseGuards(AccessTokenGuard, AccessGuard)
@@ -64,17 +64,14 @@ export class FlightsController {
     return { message: 'Created successfully' };
   }
 
-  @Patch()
-  @Roles('admin', 'company_owner')
-  @CompanyTypes('platform', 'customs_broker')
-  async updateStatus() {}
-  // tete528@gmail.com
-  // VPy%TyCUHya3
-
-  //TODO нужно создать DTO + реализовать обновление рейса
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number) {
-    console.log(id);
+  @Roles('admin')
+  @CompanyTypes('platform')
+  async update(
+    @Param('id', ParseIntPipe) flightId: number,
+    @Body() dto: UpdateFlightDto,
+  ) {
+    await this.flightsService.update(flightId, dto);
     return { message: 'Flight updated' };
   }
 }

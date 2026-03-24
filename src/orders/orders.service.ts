@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import Big from 'big.js';
 
+import { ClientPassportsRepository } from 'src/client-passports/client-passports.repository';
 import { ClientsRepository } from 'src/clients/clients.repository';
 import { PaginatedResponse } from 'src/common/types';
 import { type AllCompanyType } from 'src/companies/dto/company-type';
@@ -22,6 +23,7 @@ export class OrdersService {
     private readonly clientsRepo: ClientsRepository,
     private readonly fEventrepo: FinancialEventsRepository,
     private readonly shipmentsRep: ShipmentsRepository,
+    private readonly passRep: ClientPassportsRepository,
   ) {}
 
   async findAll(
@@ -54,6 +56,8 @@ export class OrdersService {
       shipment_status: shipmentStatus,
       data: result.data.map((o) => ({
         id: o.id,
+        internal_number: o.internal_number,
+
         company_name: o.company_name,
         sender_name: o.sender_name,
         receiver_name: o.receiver_name,
@@ -102,8 +106,14 @@ export class OrdersService {
     }
 
     return this.db.client.transaction(async (tx) => {
-      const senderId = await this.clientsRepo.create(dto.sender, tx);
-      const receiverId = await this.clientsRepo.create(dto.receiver, tx);
+      const senderId = await this.clientsRepo.createWithPassport(
+        dto.sender,
+        tx,
+      );
+      const receiverId = await this.clientsRepo.createWithPassport(
+        dto.receiver,
+        tx,
+      );
 
       const items = dto.order_items.map((i) => ({
         name: i.name,

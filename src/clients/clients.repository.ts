@@ -1,11 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { DbService } from 'src/db/db.service';
-import { clientsTable, clientPassportsTable } from 'src/db/schema';
-import { CreateClientDto, ClientsQueryDto } from './dto';
-import { desc, count, eq } from 'drizzle-orm';
-import { PaginatedResponse } from 'src/common/types';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { count, desc, eq } from 'drizzle-orm';
 import { ClientPassportsRepository } from 'src/client-passports/client-passports.repository';
-import { NotFoundException } from '@nestjs/common';
+import { PaginatedResponse } from 'src/common/types';
+import { DbService } from 'src/db/db.service';
+import { clientsTable } from 'src/db/schema';
+import { ClientsQueryDto, CreateClientDto } from './dto';
 
 @Injectable()
 export class ClientsRepository {
@@ -60,15 +59,32 @@ export class ClientsRepository {
       })
       .returning({ client_id: clientsTable.id });
 
-    await dbOrTx.insert(clientPassportsTable).values(
-      dto.passports.map((p) => ({
-        client_id: created.client_id,
+    return created.client_id;
+  }
+
+  async createWithPassport(dto: CreateClientDto, dbOrTx = this.db.client) {
+    const [client] = await dbOrTx
+      .insert(clientsTable)
+      .values({
+        name: dto.name,
+        surname: dto.surname,
         country: dto.country,
-        passport_number: p.passport_number,
-      })),
+        city: dto.city,
+        district: dto.district,
+        address_line: dto.address_line,
+        phone_country_code: dto.phone_country_code,
+        phone_number: dto.phone_number,
+      })
+      .returning({ id: clientsTable.id });
+
+    await this.passRep.create(
+      client.id,
+      dto.identity_document,
+      dto.country,
+      dbOrTx,
     );
 
-    return created.client_id;
+    return client.id;
   }
 
   async findOne(id: number) {
@@ -108,8 +124,9 @@ export class ClientsRepository {
       throw new NotFoundException(`Client with id ${client_id} not found`);
     }
 
-    const passports = await this.passRep.findByClientId(client_id);
+    const { passport_number, national_id } =
+      await this.passRep.findByClientId(client_id);
 
-    return { ...client, passports };
+    return { ...client, identity_document: { passport_number, national_id } };
   }
 }

@@ -17,6 +17,7 @@ import { DbService } from 'src/db/db.service';
 import { DbTransaction } from 'src/db/db.types';
 import { flightsTable, ordersTable, shipmentsTable } from 'src/db/schema';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { UpdateFlightDto } from './dto/update-flight.dto';
 
 @Injectable()
 export class FlightsRepository {
@@ -126,7 +127,46 @@ export class FlightsRepository {
     };
   }
 
-  async updateStatus() {}
+  // flights.repository.ts
+
+  async update(flightId: number, dto: UpdateFlightDto, tx?: DbTransaction) {
+    const client = tx || this.db.client;
+
+    // Формируем плоский объект для таблицы flights
+    const updateData: Record<string, any> = {};
+
+    if (dto.departure_location) {
+      updateData.departure_country = dto.departure_location.country;
+      updateData.departure_city = dto.departure_location.city;
+    }
+    if (dto.arrival_location) {
+      updateData.arrival_country = dto.arrival_location.country;
+      updateData.arrival_city = dto.arrival_location.city;
+    }
+
+    // Маппим остальные поля, если они есть
+    if (dto.air_partner_id) updateData.air_partner_id = dto.air_partner_id;
+    if (dto.sender_customs_id)
+      updateData.sender_customs_id = dto.sender_customs_id;
+    if (dto.receiver_customs_id)
+      updateData.receiver_customs_id = dto.receiver_customs_id;
+    if (dto.air_kg_price) updateData.air_kg_price = dto.air_kg_price;
+    if (dto.awb_number !== undefined) updateData.awb_number = dto.awb_number;
+    if (dto.final_gross_weight_kg !== undefined)
+      updateData.final_gross_weight_kg = dto.final_gross_weight_kg;
+
+    if (dto.loading_at) updateData.loading_at = dto.loading_at;
+    if (dto.departure_at) updateData.departure_at = dto.departure_at;
+    if (dto.arrival_at) updateData.arrival_at = dto.arrival_at;
+    if (dto.unloading_at) updateData.unloading_at = dto.unloading_at;
+
+    if (Object.keys(updateData).length === 0) return;
+
+    await client
+      .update(flightsTable)
+      .set(updateData)
+      .where(eq(flightsTable.id, flightId));
+  }
 
   async findOne(flightId: number) {
     const [flight] = await this.db.client

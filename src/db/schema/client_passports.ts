@@ -1,13 +1,13 @@
-import {
-  integer,
-  pgTable,
-  varchar,
-  timestamp,
-  pgEnum,
-  boolean,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import {
+  boolean,
+  integer,
+  pgEnum,
+  pgTable,
+  timestamp,
+  uniqueIndex,
+  varchar,
+} from 'drizzle-orm/pg-core';
 import { clientsTable } from './clients';
 
 export const passportStatusEnum = pgEnum('passport_status', [
@@ -27,6 +27,8 @@ export const clientPassportsTable = pgTable(
       .references(() => clientsTable.id, { onDelete: 'cascade' }),
 
     passport_number: varchar('passport_number', { length: 50 }).notNull(),
+    national_id: varchar('national_id', { length: 20 }).notNull(),
+
     country: varchar('country', { length: 2 }).notNull(),
 
     issued_at: timestamp('issued_at', { withTimezone: false }),
@@ -45,6 +47,7 @@ export const clientPassportsTable = pgTable(
       table.country,
       table.passport_number,
     ),
+    uniqueIndex('national_id_unique').on(table.national_id),
   ],
 );
 

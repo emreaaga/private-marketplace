@@ -1,6 +1,5 @@
 import { Transform, Type } from 'class-transformer';
 import {
-  ArrayNotEmpty,
   IsOptional,
   IsString,
   Length,
@@ -74,8 +73,7 @@ export class CreateClientDto {
   })
   phone_number: string;
 
-  @ArrayNotEmpty()
-  @ValidateNested({ each: true })
+  @ValidateNested()
   @Type(() => CreateClientPassportDto)
-  passports: CreateClientPassportDto[];
+  identity_document: CreateClientPassportDto;
 }

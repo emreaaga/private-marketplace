@@ -23,6 +23,10 @@ export class DrizzlePgExceptionFilter implements ExceptionFilter {
       status: HttpStatus.CONFLICT,
       message: 'Паспорт уже привязан к другому клиенту',
     },
+    national_id_unique: {
+      status: HttpStatus.CONFLICT,
+      message: 'Клиент с таким ПИНФЛ уже существует',
+    },
     users_company_id_companies_id_fk: {
       status: HttpStatus.CONFLICT,
       message: 'Почта не найдена',

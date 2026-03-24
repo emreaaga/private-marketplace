@@ -11,6 +11,7 @@ import { DbService } from 'src/db/db.service';
 import { FlightExpensesRepository } from 'src/flight-expenses/flight-expenses.repository';
 import { ShipmentsRepository } from 'src/shipments/shipments.repository';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { UpdateFlightDto } from './dto/update-flight.dto';
 import { FlightsRepository } from './flights.repository';
 
 @Injectable()
@@ -114,5 +115,20 @@ export class FlightsService {
       shipments,
       total_flight_weight_kg: total.toFixed(2),
     };
+  }
+
+  // flights.service.ts
+
+  async update(flightId: number, dto: UpdateFlightDto) {
+    return await this.db.client.transaction(async (tx) => {
+      await this.flightsRepository.update(flightId, dto, tx);
+
+      if (dto.shipments && dto.shipments.length > 0) {
+        // 2. Если в DTO пришли веса отправок (распределенные на фронте)
+      }
+
+      // 3. Можно добавить пересчет расходов (expenses), если изменился вес или цена $/кг
+      // Но это уже по желанию бизнес-логики
+    });
   }
 }
