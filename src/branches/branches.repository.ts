@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { DbService } from 'src/db/db.service';
 import { branchesTable } from 'src/db/schema';
 
@@ -17,6 +17,20 @@ export class BranchesRepository {
         city: branchesTable.city,
         is_main: branchesTable.is_main,
         is_active: branchesTable.is_active,
+      })
+      .from(branchesTable)
+      .where(eq(branchesTable.company_id, companyId))
+      .orderBy(desc(branchesTable.created_at), desc(branchesTable.id));
+
+    return data;
+  }
+
+  async lookup(companyId: number) {
+    const data = await this.db.client
+      .select({
+        id: branchesTable.id,
+        name: branchesTable.name,
+        route: sql<string>`upper(${branchesTable.country}) || '→' || upper(${branchesTable.city})`,
       })
       .from(branchesTable)
       .where(eq(branchesTable.company_id, companyId))

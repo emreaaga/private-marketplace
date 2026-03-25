@@ -11,6 +11,11 @@ export class BranchesService {
     return data;
   }
 
+  async lookup(companyId: number) {
+    const data = await this.branchesRep.lookup(companyId);
+    return data;
+  }
+
   async create(companyId: number, dto: CreateBranchDto) {
     await this.branchesRep.create(
       companyId,

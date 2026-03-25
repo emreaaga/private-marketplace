@@ -9,11 +9,11 @@ import { CreateBranchDto } from './dto/create-branch.dto';
 
 @Controller('branches')
 @UseGuards(AccessTokenGuard, AccessGuard)
+@Roles('admin')
+@CompanyTypes('platform')
 export class BranchesController {
   constructor(private readonly branchesSer: BranchesService) {}
 
-  @Roles('admin')
-  @CompanyTypes('platform')
   @Get(':id')
   async findAllByCompany(@Param('id', ParseIdPipe) companyId: number) {
     const data = await this.branchesSer.findAllByCompany(companyId);
@@ -21,8 +21,6 @@ export class BranchesController {
     return { data };
   }
 
-  @Roles('admin')
-  @CompanyTypes('platform')
   @Post(':id')
   async create(
     @Param('id', ParseIdPipe) companyId: number,
@@ -30,5 +28,11 @@ export class BranchesController {
   ) {
     await this.branchesSer.create(companyId, dto);
     return { message: 'Branch created' };
+  }
+
+  @Get('lookup/:id')
+  async lookup(@Param('id', ParseIdPipe) companyId: number) {
+    const data = await this.branchesSer.lookup(companyId);
+    return { data };
   }
 }
