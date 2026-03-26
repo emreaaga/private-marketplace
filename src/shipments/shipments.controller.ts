@@ -42,7 +42,7 @@ export class ShipmentsController {
   }
 
   @Roles('admin', 'company_owner')
-  @CompanyTypes('platform', 'postal')
+  @CompanyTypes('platform', 'postal', 'customs_broker')
   @Get('/lookup')
   async lookup(
     @Query() dto: ShipmentsLookupQueryDto,

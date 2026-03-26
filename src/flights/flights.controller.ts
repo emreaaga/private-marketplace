@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -14,6 +15,7 @@ import { AccessGuard } from 'src/auth/guards/access.guard';
 import { CompanyTypes } from 'src/common/decorators/company-types.decorator';
 import { User } from 'src/common/decorators/get-user.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { ParseIdPipe } from 'src/common/pipes/parse-id.pipe';
 import { type AccessTokenPayload, PaginatedResponse } from 'src/common/types';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
 import { UpdateFlightDto } from './dto/update-flight.dto';
@@ -43,7 +45,7 @@ export class FlightsController {
   @Get(':id')
   @Roles('admin')
   @CompanyTypes('platform')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIdPipe) id: number) {
     const data = await this.flightsService.findOne(id);
     return { data };
   }
@@ -51,7 +53,7 @@ export class FlightsController {
   @Get(':id/summary')
   @Roles('admin')
   @CompanyTypes('platform')
-  async getSummary(@Param('id', ParseIntPipe) id: number) {
+  async getSummary(@Param('id', ParseIdPipe) id: number) {
     const data = await this.flightsService.getSummary(id);
     return { data };
   }
@@ -74,4 +76,20 @@ export class FlightsController {
     await this.flightsService.update(flightId, dto);
     return { message: 'Flight updated' };
   }
+
+  @Patch(':id/confirm-arrival')
+  @Roles('admin', 'company_owner')
+  @CompanyTypes('platform', 'customs_broker')
+  async confirmArrival(@Param('id', ParseIdPipe) flightId: number) {
+    await this.flightsService.updateStatus(flightId);
+    return { message: 'Flight status updated' };
+  }
+
+  // @Get(':id/get-regions')
+  // @Roles('admin', 'company_owner')
+  // @CompanyTypes('platform', 'customs_broker')
+  // async findBranches(@Param('id', ParseIdPipe) flightId: number) {
+  //   const data = await this.flightsService.findRegions(flightId);
+  //   return { data };
+  // }
 }

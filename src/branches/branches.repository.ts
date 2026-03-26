@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { DbService } from 'src/db/db.service';
 import { branchesTable } from 'src/db/schema';
 
@@ -39,6 +39,20 @@ export class BranchesRepository {
     return data;
   }
 
+  async findAllByCompanyId(companyId: number, dbOrTx = this.db.client) {
+    const data = await dbOrTx
+      .select({ id: branchesTable.id, city: branchesTable.city })
+      .from(branchesTable)
+      .where(
+        and(
+          eq(branchesTable.company_id, companyId),
+          eq(branchesTable.is_active, true),
+        ),
+      );
+
+    return data;
+  }
+
   async create(
     companyId: number,
     brancheName: string,
@@ -47,12 +61,17 @@ export class BranchesRepository {
     isMain: boolean = false,
     dbOrTx = this.db.client,
   ) {
-    await dbOrTx.insert(branchesTable).values({
-      company_id: companyId,
-      name: brancheName,
-      country: branchCountry,
-      city: branchCity,
-      is_main: isMain,
-    });
+    const [branchId] = await dbOrTx
+      .insert(branchesTable)
+      .values({
+        company_id: companyId,
+        name: brancheName,
+        country: branchCountry,
+        city: branchCity,
+        is_main: isMain,
+      })
+      .returning({ branchId: branchesTable.id });
+
+    return branchId.branchId;
   }
 }

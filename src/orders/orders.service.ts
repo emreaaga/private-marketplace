@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import Big from 'big.js';
 
-import { ClientPassportsRepository } from 'src/client-passports/client-passports.repository';
+import { BranchesRepository } from 'src/branches/branches.repository';
 import { ClientsRepository } from 'src/clients/clients.repository';
 import { PaginatedResponse } from 'src/common/types';
 import { type AllCompanyType } from 'src/companies/dto/company-type';
@@ -23,7 +23,7 @@ export class OrdersService {
     private readonly clientsRepo: ClientsRepository,
     private readonly fEventrepo: FinancialEventsRepository,
     private readonly shipmentsRep: ShipmentsRepository,
-    private readonly passRep: ClientPassportsRepository,
+    private readonly branchesRep: BranchesRepository,
   ) {}
 
   async findAll(
@@ -143,6 +143,8 @@ export class OrdersService {
           total_amount: total,
           extra_fee: extraFee,
           company_id: targetCompanyId,
+          to_country: dto.receiver.country,
+          to_city: dto.receiver.city,
         },
         tx,
       );

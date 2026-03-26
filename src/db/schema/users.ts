@@ -9,7 +9,11 @@ import {
 import { branchesTable } from './branches';
 import { companiesTable } from './companies';
 
-export const userRoleEnum = pgEnum('role', ['admin', 'company_owner']);
+export const userRoleEnum = pgEnum('role', [
+  'admin',
+  'company_owner',
+  'employee',
+]);
 export const userStatusEnum = pgEnum('user_status', [
   'active',
   'blocked',

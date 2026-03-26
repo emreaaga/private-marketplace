@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BranchesModule } from 'src/branches/branches.module';
 import { ClientPassportsModule } from 'src/client-passports/client-passports.module';
 import { ClientsModule } from 'src/clients/clients.module';
 import { ClientsRepository } from 'src/clients/clients.repository';
@@ -20,8 +21,10 @@ import { OrdersService } from './orders.service';
     FinancialEventsModule,
     CommonModule,
     ShipmentsModule,
+    BranchesModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersRepository, OrdersService, ClientsRepository],
+  exports: [OrdersRepository],
 })
 export class OrdersModule {}

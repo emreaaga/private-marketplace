@@ -65,9 +65,10 @@ export class UsersRepository {
     };
   }
 
-  async create(dto: CreateUserDto) {
-    await this.db.client.insert(usersTable).values({
+  async create(dto: CreateUserDto, dbOrTx = this.db.client) {
+    await dbOrTx.insert(usersTable).values({
       company_id: dto.company_id,
+      branch_id: dto.branch_id,
       name: dto.name,
       surname: dto.surname,
       email: dto.email,

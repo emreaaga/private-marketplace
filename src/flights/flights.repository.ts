@@ -17,6 +17,7 @@ import { DbService } from 'src/db/db.service';
 import { DbTransaction } from 'src/db/db.types';
 import { flightsTable, ordersTable, shipmentsTable } from 'src/db/schema';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
+import { FlightStatuses } from './dto/flights-status';
 import { UpdateFlightDto } from './dto/update-flight.dto';
 
 @Injectable()
@@ -127,8 +128,6 @@ export class FlightsRepository {
     };
   }
 
-  // flights.repository.ts
-
   async update(flightId: number, dto: UpdateFlightDto, tx?: DbTransaction) {
     const client = tx || this.db.client;
 
@@ -238,5 +237,16 @@ export class FlightsRepository {
       .returning({ id: flightsTable.id });
 
     return flight;
+  }
+
+  async changeStatus(
+    flightId: number,
+    flightStatus: FlightStatuses,
+    dbOrTx = this.db.client,
+  ) {
+    await dbOrTx
+      .update(flightsTable)
+      .set({ status: flightStatus })
+      .where(eq(flightsTable.id, flightId));
   }
 }

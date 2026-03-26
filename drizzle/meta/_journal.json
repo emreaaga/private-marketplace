@@ -120,6 +120,20 @@
       "when": 1774355059757,
       "tag": "0017_tense_madrox",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1774455362562,
+      "tag": "0018_majestic_doorman",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1774508008301,
+      "tag": "0019_living_stranger",
+      "breakpoints": true
     }
   ]
 }

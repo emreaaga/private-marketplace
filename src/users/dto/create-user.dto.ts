@@ -25,6 +25,11 @@ export class CreateUserDto {
   @Min(1)
   company_id: number;
 
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  branch_id: number;
+
   @IsString()
   @Transform(({ value }) => normalizeCapitalized(value))
   @Length(2, 100)

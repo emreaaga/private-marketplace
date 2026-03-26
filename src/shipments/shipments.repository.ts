@@ -253,4 +253,18 @@ export class ShipmentsRepository {
 
     return data?.companyId ?? null;
   }
+
+  async updateStatusByFlightId(
+    flightId: number,
+    shipmentStatus: ShipmentsStatus,
+    dbOrTx = this.db.client,
+  ) {
+    const shipmentId = await dbOrTx
+      .update(shipmentsTable)
+      .set({ status: shipmentStatus })
+      .where(eq(shipmentsTable.flight_id, flightId))
+      .returning({ id: shipmentsTable.id });
+
+    return shipmentId;
+  }
 }

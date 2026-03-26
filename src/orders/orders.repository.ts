@@ -1,5 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { and, count, desc, eq, sql, type SQL } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  sql,
+  type SQL,
+} from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { PaginatedResponse } from 'src/common/types';
 import { OrderItemsRepository } from 'src/order-items/order-items.repository';
@@ -8,7 +17,14 @@ import { OrdersQueryDto } from './dto/orders-query.dto';
 
 import { calculatePagination } from 'src/common/utils/pagination.util';
 import { DbService } from 'src/db/db.service';
-import { clientsTable, companiesTable, ordersTable } from 'src/db/schema';
+import {
+  branchesTable,
+  clientsTable,
+  companiesTable,
+  ordersTable,
+  shipmentsTable,
+} from 'src/db/schema';
+import { OrdersStatus } from './dto/orders-statuses';
 
 @Injectable()
 export class OrdersRepository {
@@ -132,6 +148,8 @@ export class OrdersRepository {
       total_amount: string;
       extra_fee: string;
       company_id: number;
+      to_country: string;
+      to_city: string;
     },
     dbOrTx = this.db.client,
   ) {
@@ -139,10 +157,76 @@ export class OrdersRepository {
       .insert(ordersTable)
       .values({
         ...values,
-        destination_branch_id: 1,
       })
       .returning({ order_id: ordersTable.id });
 
     return row.order_id;
+  }
+
+  async syncBranchesWithPartner(
+    shipmentIds: number[],
+    partnerId: number,
+    dbOrTx = this.db.client,
+  ) {
+    return await dbOrTx
+      .update(ordersTable)
+      .set({
+        destination_branch_id: sql`(
+          SELECT ${branchesTable.id}
+          FROM ${branchesTable}
+          WHERE ${branchesTable.company_id} = ${partnerId}
+            AND ${branchesTable.city} = ${ordersTable.to_city}
+            AND ${branchesTable.is_active} = true
+          LIMIT 1
+        )`,
+      })
+      .where(inArray(ordersTable.shipment_id, shipmentIds));
+  }
+
+  async findFirstOrphanOrder(shipmentIds: number[], dbOrTx = this.db.client) {
+    const [orphan] = await dbOrTx
+      .select({
+        id: ordersTable.id,
+        city: ordersTable.to_city,
+      })
+      .from(ordersTable)
+      .where(
+        and(
+          inArray(ordersTable.shipment_id, shipmentIds),
+          isNull(ordersTable.destination_branch_id),
+        ),
+      )
+      .limit(1);
+
+    return orphan ?? null;
+  }
+
+  async updateStatusByShipmentIds(
+    shipmentId: number[],
+    ordersStatus: OrdersStatus,
+    dbOrTx = this.db.client,
+  ) {
+    await dbOrTx
+      .update(ordersTable)
+      .set({ status: ordersStatus })
+      .where(inArray(ordersTable.shipment_id, shipmentId));
+  }
+
+  async findGroupCityByFlightId(flightId: number, dbOrTx = this.db.client) {
+    const data = await dbOrTx
+      .select({
+        branch_id: ordersTable.destination_branch_id,
+        to_city: ordersTable.to_city,
+        orders_count: sql<string>`count(${ordersTable.id})`,
+        total_prepaid: sql<string>`coalesce(sum(${ordersTable.prepaid_amount}), 0)`,
+        total_remaining: sql<string>`coalesce(sum(${ordersTable.total_amount}) - sum(${ordersTable.prepaid_amount}), 0)`,
+        total_weight: sql<string>`coalesce(sum(${ordersTable.weight_kg}), 0)`,
+      })
+      .from(ordersTable)
+      .innerJoin(shipmentsTable, eq(ordersTable.shipment_id, shipmentsTable.id))
+      .where(eq(shipmentsTable.flight_id, flightId))
+      .groupBy(ordersTable.to_city, ordersTable.destination_branch_id);
+
+    return data;
   }
 }

@@ -8,13 +8,13 @@ import {
 } from 'class-validator';
 import { CreateClientPassportDto } from 'src/client-passports/dto/create-passport.dto';
 import { REGEX } from 'src/common/constants/regex.constants';
+import { CountryCityDistrictDto } from 'src/common/dto';
 import {
   normalizeCapitalized,
   normalizeTrimmed,
-  normalizeUpperTrimmed,
 } from 'src/common/utils/string.utils';
 
-export class CreateClientDto {
+export class CreateClientDto extends CountryCityDistrictDto {
   @Transform(({ value }) => normalizeCapitalized(value))
   @IsString()
   @Length(2, 100)
@@ -30,28 +30,6 @@ export class CreateClientDto {
     message: 'Фамилия: только буквы',
   })
   surname: string;
-
-  @Transform(({ value }) => normalizeUpperTrimmed(value))
-  @IsString()
-  @Matches(REGEX.COUNTRY_ISO2, {
-    message: 'Страна: код из 2 букв (TR, UZ)',
-  })
-  country: string;
-
-  @Transform(({ value }) => normalizeUpperTrimmed(value))
-  @IsString()
-  @Matches(REGEX.CITY_CODE, {
-    message: 'Город: 3 буквы латиницей (TAS)',
-  })
-  city: string;
-
-  @Transform(({ value }) => normalizeTrimmed(value))
-  @IsString()
-  @Length(1, 50)
-  @Matches(REGEX.DISTRICT_ONE_WORD, {
-    message: 'Район: только буквы',
-  })
-  district: string;
 
   @IsOptional()
   @Transform(({ value }) => normalizeTrimmed(value))

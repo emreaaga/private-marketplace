@@ -6,9 +6,11 @@ import {
 import Big from 'big.js';
 import { PaginatedResponse } from 'src/common/types';
 
+import { BranchesRepository } from 'src/branches/branches.repository';
 import { type AllCompanyType } from 'src/companies/dto/company-type';
 import { DbService } from 'src/db/db.service';
 import { FlightExpensesRepository } from 'src/flight-expenses/flight-expenses.repository';
+import { OrdersRepository } from 'src/orders/orders.repository';
 import { ShipmentsRepository } from 'src/shipments/shipments.repository';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
 import { UpdateFlightDto } from './dto/update-flight.dto';
@@ -21,6 +23,8 @@ export class FlightsService {
     private readonly flightsRepository: FlightsRepository,
     private readonly flightExpensesRep: FlightExpensesRepository,
     private readonly shipmentsRep: ShipmentsRepository,
+    private readonly branchesRep: BranchesRepository,
+    private readonly ordersRep: OrdersRepository,
   ) {}
 
   async create(dto: CreateFlightDto) {
@@ -36,6 +40,23 @@ export class FlightsService {
 
       if (updatedShipments.length !== dto.shipments.length) {
         throw new BadRequestException('Некорректный список отправок');
+      }
+
+      await this.ordersRep.syncBranchesWithPartner(
+        dto.shipments,
+        dto.receiver_customs_id,
+        tx,
+      );
+
+      const hasOrphans = await this.ordersRep.findFirstOrphanOrder(
+        dto.shipments,
+        tx,
+      );
+
+      if (hasOrphans) {
+        throw new BadRequestException(
+          `У выбранного партнера нет активного филиала в городе: ${hasOrphans.city}. `,
+        );
       }
 
       const totalWeight = await this.shipmentsRep.getTotalWeightByShipmentIds(
@@ -105,6 +126,9 @@ export class FlightsService {
 
     const shipments = await this.shipmentsRep.findByFlightId(flightId);
 
+    const branches_summary =
+      await this.ordersRep.findGroupCityByFlightId(flightId);
+
     const total = shipments.reduce((sum, shipment) => {
       const currentWeight = new Big(shipment.total_weight_kg || 0);
       return sum.plus(currentWeight);
@@ -113,11 +137,10 @@ export class FlightsService {
     return {
       ...flight,
       shipments,
+      branches_summary,
       total_flight_weight_kg: total.toFixed(2),
     };
   }
-
-  // flights.service.ts
 
   async update(flightId: number, dto: UpdateFlightDto) {
     return await this.db.client.transaction(async (tx) => {
@@ -129,6 +152,28 @@ export class FlightsService {
 
       // 3. Можно добавить пересчет расходов (expenses), если изменился вес или цена $/кг
       // Но это уже по желанию бизнес-логики
+    });
+  }
+
+  async updateStatus(flightId: number) {
+    return await this.db.client.transaction(async (tx) => {
+      await this.flightsRepository.changeStatus(flightId, 'arrived', tx);
+
+      const updatedShipments = await this.shipmentsRep.updateStatusByFlightId(
+        flightId,
+        'arrived',
+        tx,
+      );
+
+      const shipmentIds = updatedShipments.map((s) => s.id);
+
+      if (shipmentIds.length > 0) {
+        await this.ordersRep.updateStatusByShipmentIds(
+          shipmentIds,
+          'arrived',
+          tx,
+        );
+      }
     });
   }
 }
