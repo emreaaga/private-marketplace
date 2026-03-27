@@ -13,6 +13,7 @@ import { flightsTable } from './flights';
 import { ordersTable } from './orders';
 import { servicesTable } from './services';
 import { shipmentsTable } from './shipments';
+import { tripsTable } from './trips';
 import { usersTable } from './users';
 
 export const companyTypeEnum = pgEnum('company_type', [
@@ -45,6 +46,7 @@ export const companiesRelations = relations(companiesTable, ({ many }) => ({
   services: many(servicesTable),
   shipments: many(shipmentsTable),
   orders: many(ordersTable),
+  trips: many(tripsTable),
   airPartnerFlights: many(flightsTable, {
     relationName: 'airPartner',
   }),

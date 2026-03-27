@@ -16,6 +16,7 @@ import { financialEventsTable } from './financial-events';
 import { orderItemsTable } from './order_items';
 import { servicesTable } from './services';
 import { shipmentsTable } from './shipments';
+import { tripsTable } from './trips';
 
 export const orderStatusEnum = pgEnum('order_status', [
   'received', // принят
@@ -30,6 +31,7 @@ export const ordersTable = pgTable(
   {
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
     internal_number: integer('internal_number').notNull().default(0),
+    trip_id: integer('trip_id').references(() => tripsTable.id),
 
     destination_branch_id: integer('destination_branch_id').references(
       () => branchesTable.id,
@@ -121,4 +123,9 @@ export const ordersRelations = relations(ordersTable, ({ one, many }) => ({
   items: many(orderItemsTable),
 
   financialEvents: many(financialEventsTable),
+
+  trip: one(tripsTable, {
+    fields: [ordersTable.trip_id],
+    references: [tripsTable.id],
+  }),
 }));

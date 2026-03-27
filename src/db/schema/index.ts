@@ -9,4 +9,6 @@ export * from './order_items';
 export * from './orders';
 export * from './services';
 export * from './shipments';
+export * from './trip_stops';
+export * from './trips';
 export * from './users';
