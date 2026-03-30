@@ -162,6 +162,13 @@
       "when": 1774692087101,
       "tag": "0023_premium_mongu",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1774880674696,
+      "tag": "0024_fixed_random",
+      "breakpoints": true
     }
   ]
 }
