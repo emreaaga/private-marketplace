@@ -38,10 +38,7 @@ export class ShipmentsRepository {
     const data = await this.db.client
       .select({
         id: shipmentsTable.id,
-        public_id: sql<string>`
-		      LPAD(${shipmentsTable.company_id}::text, 3, '0') || '-' ||
-		      LPAD(${shipmentsTable.internal_number}::text, 5, '0')
-      	`,
+        public_id: shipmentsTable.id,
         company_name: companiesTable.name,
         flight_id: shipmentsTable.flight_id,
         route: sql<string>`
@@ -106,7 +103,7 @@ export class ShipmentsRepository {
     const data = await this.db.client
       .select({
         id: shipmentsTable.id,
-        internal_number: shipmentsTable.internal_number,
+        internal_number: sql<string>`'C-' || LPAD(${shipmentsTable.id}::text, 5, '0')`,
         orders_count: sql<number>`count(${ordersTable.id})`,
         total_weight_kg: sql<number>`coalesce(sum(${ordersTable.weight_kg}), 0)`,
         total_prepaid: sql<number>`coalesce(sum(${ordersTable.prepaid_amount}), 0)`,
@@ -141,7 +138,7 @@ export class ShipmentsRepository {
     return await this.db.client
       .select({
         id: shipmentsTable.id,
-        internal_number: shipmentsTable.internal_number,
+        internal_number: sql<string>`'C-' || LPAD(${shipmentsTable.id}::text, 5, '0')`,
         company_id: shipmentsTable.company_id,
         company_name: companiesTable.name,
         orders_count: sql<number>`count(${ordersTable.id})`,

@@ -1,6 +1,5 @@
 export interface OrderListItem {
   id: number;
-  internal_number: number;
   company_name: string;
   sender_name: string | null;
   receiver_name: string | null;

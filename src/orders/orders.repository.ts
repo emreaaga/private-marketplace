@@ -60,7 +60,6 @@ export class OrdersRepository {
     const orders: OrderListItem[] = await this.db.client
       .select({
         id: ordersTable.id,
-        internal_number: ordersTable.internal_number,
         shipment_id: ordersTable.shipment_id,
         company_name: companiesTable.name,
 

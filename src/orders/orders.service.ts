@@ -56,7 +56,7 @@ export class OrdersService {
       shipment_status: shipmentStatus,
       data: result.data.map((o) => ({
         id: o.id,
-        internal_number: o.internal_number,
+        internal_number: `C-${String(o.id).padStart(5, '0')}`,
 
         company_name: o.company_name,
         sender_name: o.sender_name,
