@@ -249,4 +249,27 @@ export class FlightsRepository {
       .set({ status: flightStatus })
       .where(eq(flightsTable.id, flightId));
   }
+
+  async lookupByStatus(
+    companyId?: number,
+    flightStatus: FlightStatuses = 'arrived',
+  ) {
+    const whereConditions = [eq(flightsTable.status, flightStatus)];
+
+    if (companyId) {
+      whereConditions.push(eq(flightsTable.receiver_customs_id, companyId));
+    }
+
+    const data = await this.db.client
+      .select({
+        id: flightsTable.id,
+        arrival_at: flightsTable.arrival_at,
+      })
+      .from(flightsTable)
+      .where(and(...whereConditions))
+      .orderBy(flightsTable.created_at, flightsTable.id)
+      .limit(10);
+
+    return data;
+  }
 }

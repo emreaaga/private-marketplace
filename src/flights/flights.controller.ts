@@ -42,12 +42,29 @@ export class FlightsController {
     return { data, pagination };
   }
 
+  @Get('lookup')
+  @Roles('admin', 'company_owner')
+  @CompanyTypes('platform', 'customs_broker')
+  async lookup(@User() user: AccessTokenPayload) {
+    const data = await this.flightsService.lookup(user.cid, user.ctype);
+    return { data };
+  }
+
   @Get(':id')
   @Roles('admin')
   @CompanyTypes('platform')
   async findOne(@Param('id', ParseIdPipe) id: number) {
     const data = await this.flightsService.findOne(id);
     return { data };
+  }
+
+  @Get(':id/distribution')
+  @Roles('admin', 'company_owner')
+  @CompanyTypes('platform', 'customs_broker')
+  async lookupDistribution(@Param('id', ParseIdPipe) flightId: number) {
+    const { summary, available_cities } =
+      await this.flightsService.lookupDistribution(flightId);
+    return { data: available_cities, summary };
   }
 
   @Get(':id/summary')

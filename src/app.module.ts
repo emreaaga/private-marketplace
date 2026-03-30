@@ -14,6 +14,8 @@ import { OrderItemsModule } from './order-items/order-items.module';
 import { OrdersModule } from './orders/orders.module';
 import { ServicesModule } from './services/services.module';
 import { ShipmentsModule } from './shipments/shipments.module';
+import { TripStopsModule } from './trip-stops/trip-stops.module';
+import { TripsModule } from './trips/trips.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -34,6 +36,8 @@ import { UsersModule } from './users/users.module';
     DashboardModule,
     FinancialEventsModule,
     BranchesModule,
+    TripsModule,
+    TripStopsModule,
   ],
 })
 export class AppModule {}

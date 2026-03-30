@@ -8,7 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { companiesTable } from './companies';
 import { ordersTable } from './orders';
-import { tripStopsTable } from './trip_stops';
+import { tripStopsTable } from './trip-stops';
 import { usersTable } from './users';
 
 export const branchesTable = pgTable('branches', {

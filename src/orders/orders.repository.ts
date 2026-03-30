@@ -24,6 +24,7 @@ import {
   ordersTable,
   shipmentsTable,
 } from 'src/db/schema';
+import { TripsStopsOrdersDto } from 'src/trips/dto/trips-stops-orders.dto';
 import { OrdersStatus } from './dto/orders-statuses';
 
 @Injectable()
@@ -228,5 +229,92 @@ export class OrdersRepository {
       .groupBy(ordersTable.to_city, ordersTable.destination_branch_id);
 
     return data;
+  }
+
+  async findDistributionByFlightId(flightId: number) {
+    return await this.db.client
+      .select({
+        branch_id: ordersTable.destination_branch_id,
+        to_city: ordersTable.to_city,
+        orders_count: sql<string>`count(${ordersTable.id})`,
+        total_prepaid: sql<string>`coalesce(sum(${ordersTable.prepaid_amount}), 0)`,
+        total_remaining: sql<string>`coalesce(sum(${ordersTable.total_amount}) - sum(${ordersTable.prepaid_amount}), 0)`,
+        total_weight: sql<string>`coalesce(sum(${ordersTable.weight_kg}), 0)`,
+      })
+      .from(ordersTable)
+      .innerJoin(shipmentsTable, eq(ordersTable.shipment_id, shipmentsTable.id))
+      .where(
+        and(
+          eq(shipmentsTable.flight_id, flightId),
+          isNull(ordersTable.trip_id),
+        ),
+      )
+      .groupBy(ordersTable.to_city, ordersTable.destination_branch_id);
+  }
+
+  async linkOrdersToTrip(
+    flightId: number,
+    tripId: number,
+    branchIds: number[],
+    dbOrTx = this.db.client,
+  ) {
+    const shipmentsSubquery = dbOrTx
+      .select({ id: shipmentsTable.id })
+      .from(shipmentsTable)
+      .where(eq(shipmentsTable.flight_id, flightId));
+
+    await dbOrTx
+      .update(ordersTable)
+      .set({
+        trip_id: tripId,
+      })
+      .where(
+        and(
+          inArray(ordersTable.shipment_id, shipmentsSubquery),
+          inArray(ordersTable.destination_branch_id, branchIds),
+          isNull(ordersTable.trip_id),
+        ),
+      );
+  }
+
+  async findByBranchAndTrip(
+    tripId: number,
+    branchId: number,
+    filters: TripsStopsOrdersDto,
+  ): Promise<PaginatedResponse> {
+    const { page } = filters;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+
+    const orders = await this.db.client
+      .select({
+        id: ordersTable.id,
+        receiver_name: clientsTable.name,
+        weight_kg: ordersTable.weight_kg,
+        remaining: sql<string>`${ordersTable.total_amount} - ${ordersTable.prepaid_amount}`,
+        status: ordersTable.status,
+      })
+      .from(ordersTable)
+      .innerJoin(clientsTable, eq(clientsTable.id, ordersTable.receiver_id))
+      .where(
+        and(
+          eq(ordersTable.trip_id, tripId),
+          eq(ordersTable.destination_branch_id, branchId),
+        ),
+      )
+      .limit(limit)
+      .offset(offset);
+
+    const [{ count: total }] = await this.db.client
+      .select({ count: count() })
+      .from(ordersTable)
+      .where(
+        and(
+          eq(ordersTable.trip_id, tripId),
+          eq(ordersTable.destination_branch_id, branchId),
+        ),
+      );
+
+    return { data: orders, pagination: calculatePagination(page, total) };
   }
 }

@@ -20,5 +20,6 @@ import { FlightsService } from './flights.service';
   ],
   controllers: [FlightsController],
   providers: [FlightsService, FlightsRepository],
+  exports: [FlightsRepository],
 })
 export class FlightsModule {}

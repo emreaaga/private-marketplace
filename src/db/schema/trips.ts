@@ -1,14 +1,8 @@
 import { relations } from 'drizzle-orm';
-import {
-  integer,
-  pgEnum,
-  pgTable,
-  timestamp,
-  varchar,
-} from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, timestamp } from 'drizzle-orm/pg-core';
 import { companiesTable } from './companies';
 import { ordersTable } from './orders';
-import { tripStopsTable } from './trip_stops';
+import { tripStopsTable } from './trip-stops';
 
 export const tripStatusEnum = pgEnum('trip_status', [
   'created', // Запланирован (идет погрузка)
@@ -18,13 +12,11 @@ export const tripStatusEnum = pgEnum('trip_status', [
 
 export const tripsTable = pgTable('trips', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  flight_id: integer('flight_id'),
 
   company_id: integer('company_id')
     .notNull()
     .references(() => companiesTable.id),
-
-  vehicle_info: varchar('vehicle_info', { length: 255 }).notNull(),
-  driver_info: varchar('driver_info', { length: 255 }).notNull(),
 
   status: tripStatusEnum().notNull().default('created'),
 

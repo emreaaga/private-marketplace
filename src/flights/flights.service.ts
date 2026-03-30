@@ -78,6 +78,13 @@ export class FlightsService {
     });
   }
 
+  async lookup(companyId: number, companyType: AllCompanyType) {
+    if (companyType === 'platform') {
+      return await this.flightsRepository.lookupByStatus();
+    }
+    return await this.flightsRepository.lookupByStatus(companyId);
+  }
+
   async findAll(
     dto: FlightsQueryDto,
     companyId: number,
@@ -175,5 +182,39 @@ export class FlightsService {
         );
       }
     });
+  }
+
+  async lookupDistribution(flightId: number) {
+    const rows = await this.ordersRep.findDistributionByFlightId(flightId);
+
+    const summaryBig = rows.reduce(
+      (acc, curr) => {
+        return {
+          total_orders: acc.total_orders.plus(curr.orders_count || 0),
+          total_weight: acc.total_weight.plus(curr.total_weight || 0),
+          total_cash: acc.total_cash.plus(curr.total_remaining || 0),
+        };
+      },
+      {
+        total_orders: new Big(0),
+        total_weight: new Big(0),
+        total_cash: new Big(0),
+      },
+    );
+
+    return {
+      summary: {
+        total_orders: summaryBig.total_orders.toFixed(0),
+        total_weight: summaryBig.total_weight.toFixed(2),
+        total_cash: summaryBig.total_cash.toFixed(2),
+      },
+      available_cities: rows.map((row) => ({
+        branch_id: row.branch_id,
+        code: row.to_city,
+        count: new Big(row.orders_count || 0).toFixed(0),
+        weight: new Big(row.total_weight || 0).toFixed(2),
+        cash: new Big(row.total_remaining || 0).toFixed(2),
+      })),
+    };
   }
 }

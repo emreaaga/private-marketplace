@@ -141,6 +141,27 @@
       "when": 1774602264628,
       "tag": "0020_special_dexter_bennett",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1774613049405,
+      "tag": "0021_milky_scorpion",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1774685103800,
+      "tag": "0022_overjoyed_omega_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1774692087101,
+      "tag": "0023_premium_mongu",
+      "breakpoints": true
     }
   ]
 }
