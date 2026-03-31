@@ -15,7 +15,12 @@ import { calculatePagination } from 'src/common/utils/pagination.util';
 import { AllCompanyType } from 'src/companies/dto/company-type';
 import { DbService } from 'src/db/db.service';
 import { DbTransaction } from 'src/db/db.types';
-import { flightsTable, ordersTable, shipmentsTable } from 'src/db/schema';
+import {
+  flightsTable,
+  ordersTable,
+  shipmentsTable,
+  tripsTable,
+} from 'src/db/schema';
 import { CreateFlightDto, FlightsQueryDto } from './dto';
 import { FlightStatuses } from './dto/flights-status';
 import { UpdateFlightDto } from './dto/update-flight.dto';
@@ -44,6 +49,7 @@ export class FlightsRepository {
     const flights = await this.db.client
       .select({
         id: flightsTable.id,
+        trip_id: tripsTable.id,
         route: sql<string>`upper(${flightsTable.from_city}) || '→' || upper(${flightsTable.to_city})`,
         air_kg_price: flightsTable.air_kg_price,
         final_gross_weight_kg: flightsTable.final_gross_weight_kg,
@@ -54,6 +60,7 @@ export class FlightsRepository {
         remaining_sum: sql<string>`coalesce(${flightStats.total_amount}, '0')::numeric - coalesce(${flightStats.total_prepaid}, '0')::numeric`,
       })
       .from(flightsTable)
+      .leftJoin(tripsTable, eq(flightsTable.id, tripsTable.flight_id))
       .leftJoin(flightStats, eq(flightsTable.id, flightStats.flight_id))
       .orderBy(desc(flightsTable.created_at), desc(flightsTable.id))
       .limit(limit)
