@@ -19,6 +19,7 @@ import { calculatePagination } from 'src/common/utils/pagination.util';
 import { DbService } from 'src/db/db.service';
 import {
   branchesTable,
+  clientPassportsTable,
   clientsTable,
   companiesTable,
   ordersTable,
@@ -80,7 +81,7 @@ export class OrdersRepository {
       .innerJoin(receiver, eq(ordersTable.receiver_id, receiver.id))
       .innerJoin(companiesTable, eq(ordersTable.company_id, companiesTable.id))
       .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
-      .orderBy(desc(ordersTable.created_at))
+      .orderBy(desc(ordersTable.id))
       .limit(limit)
       .offset(offset);
 
@@ -315,5 +316,165 @@ export class OrdersRepository {
       );
 
     return { data: orders, pagination: calculatePagination(page, total) };
+  }
+
+  async createOrdersForSeed(
+    shipments: { id: number; company_id: number }[],
+    dbOrTx = this.db.client,
+  ): Promise<number[]> {
+    const ORDERS_PER_SHIPMENT = 10;
+    const totalOrders = shipments.length * ORDERS_PER_SHIPMENT;
+    const totalClients = totalOrders * 2;
+
+    const randomDigits = (length: number) =>
+      Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
+
+    const UZ_LOCATIONS = [
+      {
+        code: 'tas',
+        districts: [
+          'Chilanzar',
+          'Yunusabad',
+          'Mirzo Ulugbek',
+          'Yakkasaray',
+          'Sergeli',
+        ],
+      },
+      {
+        code: 'skd',
+        districts: ['Pastdargom', 'Bulungur', 'Taylak', 'Jomboy', 'Ishtixon'],
+      },
+      {
+        code: 'bhk',
+        districts: ['Gijduvan', 'Kagan', 'Shofirkon', 'Vobkent', 'Jondor'],
+      },
+      {
+        code: 'nma',
+        districts: ['Pap', 'Chust', 'Chartak', 'Uychi', 'Uchkurgan'],
+      },
+    ];
+
+    // Распределение на 10 заказов: 3-TAS, 3-SKD, 2-BHK, 2-NMA
+    const citySequence = [
+      'tas',
+      'tas',
+      'tas',
+      'skd',
+      'skd',
+      'skd',
+      'bhk',
+      'bhk',
+      'nma',
+      'nma',
+    ];
+
+    // 1. СОЗДАЕМ КЛИЕНТОВ
+    const createdClients = await dbOrTx
+      .insert(clientsTable)
+      .values(
+        Array.from({ length: totalClients }).map((_, i) => {
+          const isReceiver = i % 2 === 1;
+
+          if (isReceiver) {
+            const orderIndexInBatch = Math.floor((i % 20) / 2);
+            const cityCode = citySequence[orderIndexInBatch];
+            const location = UZ_LOCATIONS.find((l) => l.code === cityCode);
+            const districts = location?.districts || ['Center'];
+            const randomDistrict =
+              districts[Math.floor(Math.random() * districts.length)];
+
+            return {
+              name: `RecName${i}`,
+              surname: `RecSurname${i}`,
+              country: 'uz',
+              city: cityCode,
+              district: randomDistrict,
+              phone_country_code: '998',
+              phone_number: `90${randomDigits(7)}`,
+              // Если в схеме нет поля inn, Drizzle может ругнуться — проверь схему!
+              // inn: randomDigits(9),
+            };
+          }
+
+          // Отправитель (Турция)
+          return {
+            name: `SendName${i}`,
+            surname: `SendSurname${i}`,
+            country: 'tr',
+            city: 'ist',
+            district: 'Fatih',
+            phone_country_code: '90',
+            phone_number: `555${randomDigits(7)}`,
+            // inn: randomDigits(10),
+          };
+        }),
+      )
+      .returning({
+        id: clientsTable.id,
+        country: clientsTable.country,
+        city: clientsTable.city,
+      });
+
+    // 2. СОЗДАЕМ ПАСПОРТА (Уникальность через i + случайные символы)
+    const passportsToInsert = createdClients.map((client, i) => {
+      const prefix = client.country.toUpperCase();
+      const randomSalt = Math.random()
+        .toString(36)
+        .substring(2, 5)
+        .toUpperCase();
+
+      return {
+        client_id: client.id,
+        // Пример: TR7A91234
+        passport_number: `${prefix}${randomSalt}${randomDigits(4)}`.slice(0, 9),
+        // ПИНФЛ: ровно 14 цифр. Хвост из индекса i гарантирует уникальность в базе.
+        national_id: `${randomDigits(10)}${i.toString().padStart(4, '0')}`,
+        country: client.country,
+        status: 'active' as const,
+        is_primary: true,
+      };
+    });
+
+    await dbOrTx.insert(clientPassportsTable).values(passportsToInsert);
+
+    // 3. СОЗДАЕМ ЗАКАЗЫ (Mapping клиентов на отправки)
+    let clientIdx = 0;
+    const ordersToInsert = shipments.flatMap((shipment) => {
+      return Array.from({ length: ORDERS_PER_SHIPMENT }).map(() => {
+        const sender = createdClients[clientIdx++];
+        const receiver = createdClients[clientIdx++];
+
+        const weight = (Math.random() * 29 + 1).toFixed(2);
+        const rate = '6.50';
+        const extraFee = '5.00';
+        const subtotal = (parseFloat(weight) * parseFloat(rate)).toFixed(2);
+        const total = (parseFloat(subtotal) + parseFloat(extraFee)).toFixed(2);
+        const randomPercent = Math.random() * 0.8 + 0.2;
+        const prepaidAmount = (parseFloat(total) * randomPercent).toFixed(2);
+
+        return {
+          company_id: shipment.company_id,
+          shipment_id: shipment.id,
+          sender_id: sender.id,
+          receiver_id: receiver.id,
+          to_country: 'uz',
+          to_city: receiver.city,
+          weight_kg: weight,
+          rate_per_kg: rate,
+          prepaid_amount: prepaidAmount,
+          subtotal: subtotal,
+          total_amount: total,
+          extra_fee: extraFee,
+          status: 'received' as const,
+        };
+      });
+    });
+
+    const createdOrders = await dbOrTx
+      .insert(ordersTable)
+      .values(ordersToInsert)
+      .returning({ id: ordersTable.id });
+
+    return createdOrders.map((o) => o.id);
   }
 }

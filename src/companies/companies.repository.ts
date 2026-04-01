@@ -141,4 +141,16 @@ export class CompaniesRepository {
 
     return updatedCompany;
   }
+
+  async getCompaniesForSeed(dbOrTx = this.db.client) {
+    const companies = await dbOrTx
+      .select({
+        id: companiesTable.id,
+      })
+      .from(companiesTable)
+      .where(eq(companiesTable.type, 'postal'))
+      .limit(5);
+
+    return companies.map((c) => c.id);
+  }
 }

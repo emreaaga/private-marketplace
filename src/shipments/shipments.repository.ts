@@ -264,4 +264,25 @@ export class ShipmentsRepository {
 
     return shipmentId;
   }
+
+  async createShipmentsForSeed(companyIds: number[], dbOrTx = this.db.client) {
+    type NewShipment = typeof shipmentsTable.$inferInsert;
+
+    const shipmentsToInsert: NewShipment[] = companyIds.map((companyId) => ({
+      company_id: companyId,
+      from_country: 'tr',
+      to_country: 'uz',
+      status: 'draft',
+    }));
+
+    const createdShipments = await dbOrTx
+      .insert(shipmentsTable)
+      .values(shipmentsToInsert)
+      .returning({
+        id: shipmentsTable.id,
+        company_id: shipmentsTable.company_id,
+      });
+
+    return createdShipments;
+  }
 }

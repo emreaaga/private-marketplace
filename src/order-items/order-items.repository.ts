@@ -42,4 +42,17 @@ export class OrderItemsRepository {
       })),
     );
   }
+
+  async createItemsForSeed(orderIds: number[], dbOrTx = this.db.client) {
+    type NewItem = typeof orderItemsTable.$inferInsert;
+
+    const itemsToInsert: NewItem[] = orderIds.map((orderId) => ({
+      order_id: orderId,
+      name: 'Тестовый товар',
+      quantity: 1,
+      unit_price: '10.00',
+    }));
+
+    await dbOrTx.insert(orderItemsTable).values(itemsToInsert);
+  }
 }
