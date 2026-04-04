@@ -17,17 +17,16 @@ import { CreateUserDto, UpdateUserDto, UsersQueryDto } from './dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
+@UseGuards(AccessTokenGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // @UseGuards(AccessTokenGuard)
   @Post()
   async create(@Body() dto: CreateUserDto): Promise<object> {
     await this.usersService.create(dto);
     return { message: 'Successfully create user.' };
   }
 
-  @UseGuards(AccessTokenGuard)
   @Get()
   async findAll(
     @Query() query: UsersQueryDto,
@@ -41,7 +40,6 @@ export class UsersController {
     return { data, pagination };
   }
 
-  @UseGuards(AccessTokenGuard)
   @Get(':id')
   async findOne(@Param('id', ParseIdPipe) id: number) {
     const user = await this.usersService.findOne(id);
@@ -49,7 +47,6 @@ export class UsersController {
     return { data: user };
   }
 
-  @UseGuards(AccessTokenGuard)
   @Patch(':id')
   async update(
     @Param('id', ParseIdPipe) userId: number,
@@ -59,7 +56,6 @@ export class UsersController {
     return { message: 'User updated.' };
   }
 
-  @UseGuards(AccessTokenGuard)
   @Delete(':id')
   async deleteUser(@Param('id', ParseIdPipe) id: number) {
     await this.usersService.deleteUser(id);

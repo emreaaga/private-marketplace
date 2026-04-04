@@ -66,4 +66,13 @@ export class DashboardService {
       RESTART IDENTITY CASCADE;
     `);
   }
+
+  async getDirectoryStats() {
+    const [usersData, companiesData] = await Promise.all([
+      this.usersRep.countGroupedByRole(),
+      this.companiesRep.countGroupedByType(),
+    ]);
+
+    return { usersData, companiesData };
+  }
 }

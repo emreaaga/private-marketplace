@@ -41,7 +41,7 @@ import { ServicesService } from './services.service';
 
 @UseGuards(AccessTokenGuard, AccessGuard)
 @Roles('admin', 'company_owner')
-@CompanyTypes('platform', 'postal', 'customs_broker', 'airline', 'air_partner')
+@CompanyTypes('platform', 'postal', 'customs_broker', 'air_partner')
 @Controller('/services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}

@@ -153,4 +153,17 @@ export class CompaniesRepository {
 
     return companies.map((c) => c.id);
   }
+
+  async countGroupedByType() {
+    const data = await this.db.client
+      .select({
+        type: companiesTable.type,
+        total_count: count(companiesTable.id),
+      })
+      .from(companiesTable)
+      .where(ne(companiesTable.type, 'platform'))
+      .groupBy(companiesTable.type);
+
+    return data;
+  }
 }

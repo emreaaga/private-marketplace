@@ -12,16 +12,24 @@ export class DashboardController {
 
   @Get('stats')
   @Roles('admin', 'company_owner', 'employee')
-  @CompanyTypes(
-    'platform',
-    'postal',
-    'customs_broker',
-    'air_partner',
-    'airline',
-  )
+  @CompanyTypes('platform', 'postal', 'customs_broker', 'air_partner')
   async getMainStats() {
     const data = await this.dashboardSer.getMainStats();
     return { data };
+  }
+
+  @Get('all-users')
+  @Roles('admin')
+  @CompanyTypes('platform')
+  async getDirectoryStats() {
+    const { usersData, companiesData } =
+      await this.dashboardSer.getDirectoryStats();
+    return {
+      data: {
+        users: usersData,
+        companies: companiesData,
+      },
+    };
   }
 
   @Roles('admin')

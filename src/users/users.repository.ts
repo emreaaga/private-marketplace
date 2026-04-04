@@ -14,13 +14,17 @@ export class UsersRepository {
     companyId?: number,
   ): Promise<PaginatedResponse> {
     const limit = 10;
-    const page = filters.page;
+    const { page, role } = filters;
     const offset = (page - 1) * limit;
 
     const whereConditions: SQL[] = [ne(usersTable.role, 'admin')];
 
     if (companyId) {
       whereConditions.push(eq(usersTable.company_id, companyId));
+    }
+
+    if (role) {
+      whereConditions.push(eq(usersTable.role, role));
     }
 
     const finalWhere = and(...whereConditions);
@@ -227,5 +231,15 @@ export class UsersRepository {
       .where(eq(usersTable.company_id, companyId));
 
     return totalEmployees;
+  }
+
+  async countGroupedByRole() {
+    const data = await this.db.client
+      .select({ role: usersTable.role, total_count: count(usersTable.id) })
+      .from(usersTable)
+      .where(ne(usersTable.role, 'admin'))
+      .groupBy(usersTable.role);
+
+    return data;
   }
 }

@@ -21,7 +21,6 @@ export const companyTypeEnum = pgEnum('company_type', [
   'postal',
   'air_partner',
   'customs_broker',
-  'airline',
 ]);
 
 export const companiesTable = pgTable('companies', {
