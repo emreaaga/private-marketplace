@@ -1,4 +1,0 @@
-ignoredBuiltDependencies:
-  - '@nestjs/core'
-  - esbuild
-  - unrs-resolver

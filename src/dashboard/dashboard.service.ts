@@ -62,7 +62,9 @@ export class DashboardService {
         shipments,
         order_items,
         client_passports,
-        clients
+        clients,
+        flights,
+        trips
       RESTART IDENTITY CASCADE;
     `);
   }
