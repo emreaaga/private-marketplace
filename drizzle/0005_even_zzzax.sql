@@ -1,1 +1,0 @@
-ALTER TABLE "order_items" RENAME COLUMN "declared_value" TO "unit_price";

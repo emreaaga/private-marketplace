@@ -25,6 +25,7 @@ export const companyTypeEnum = pgEnum('company_type', [
 
 export const companiesTable = pgTable('companies', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  public_id: varchar('public_id', { length: 10 }).unique(),
 
   name: varchar('name', { length: 255 }).notNull(),
   type: companyTypeEnum().notNull(),

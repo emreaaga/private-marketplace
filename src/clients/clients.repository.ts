@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { count, desc, eq } from 'drizzle-orm';
+import { count, desc, eq, sql } from 'drizzle-orm';
 import { ClientPassportsRepository } from 'src/client-passports/client-passports.repository';
 import { PaginatedResponse } from 'src/common/types';
 import { DbService } from 'src/db/db.service';
@@ -19,7 +19,17 @@ export class ClientsRepository {
     const offset = (page - 1) * limit;
 
     const clients = await this.db.client
-      .select()
+      .select({
+        id: clientsTable.id,
+        public_id: clientsTable.public_id,
+        name: clientsTable.name,
+        surname: clientsTable.surname,
+        country: clientsTable.country,
+        city: clientsTable.city,
+        phone_number: sql<string>`${clientsTable.phone_country_code} || ${clientsTable.phone_number}`,
+        status: clientsTable.status,
+        created_at: clientsTable.created_at,
+      })
       .from(clientsTable)
       .orderBy(desc(clientsTable.created_at), desc(clientsTable.id))
       .limit(limit)

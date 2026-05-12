@@ -3,11 +3,29 @@ import { and, count, desc, eq, ne, SQL } from 'drizzle-orm';
 import { PaginatedResponse } from 'src/common/types';
 import { DbService } from 'src/db/db.service';
 import { companiesTable, usersTable } from 'src/db/schema';
-import { CreateUserDto, UpdateUserDto, UsersQueryDto } from './dto';
+import { CreateUserDto, UpdateUserDto, UserRoles, UsersQueryDto } from './dto';
 
 @Injectable()
 export class UsersRepository {
   constructor(private readonly db: DbService) {}
+
+  async findByRole(
+    userRole: UserRoles,
+    companyId: number,
+    dbOrTx = this.db.client,
+  ) {
+    const [totalUsers] = await dbOrTx
+      .select({ count: count() })
+      .from(usersTable)
+      .where(
+        and(
+          eq(usersTable.role, userRole),
+          eq(usersTable.company_id, companyId),
+        ),
+      );
+
+    return totalUsers.count;
+  }
 
   async allUsers(
     filters: UsersQueryDto,
@@ -32,6 +50,7 @@ export class UsersRepository {
     const users = await this.db.client
       .select({
         id: usersTable.id,
+        public_id: usersTable.public_id,
         company_name: companiesTable.name,
         company_type: companiesTable.type,
         name: usersTable.name,
@@ -69,9 +88,14 @@ export class UsersRepository {
     };
   }
 
-  async create(dto: CreateUserDto, dbOrTx = this.db.client) {
+  async create(
+    dto: CreateUserDto,
+    dbOrTx = this.db.client,
+    userPublicId: string,
+  ) {
     await dbOrTx.insert(usersTable).values({
       company_id: dto.company_id,
+      public_id: userPublicId,
       branch_id: dto.branch_id,
       name: dto.name,
       surname: dto.surname,

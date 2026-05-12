@@ -22,6 +22,7 @@ export const userStatusEnum = pgEnum('user_status', [
 
 export const usersTable = pgTable('users', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  public_id: varchar('public_id', { length: 14 }).unique(),
 
   company_id: integer('company_id')
     .notNull()

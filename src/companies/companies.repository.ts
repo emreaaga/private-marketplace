@@ -25,7 +25,16 @@ export class CompaniesRepository {
       : ne(companiesTable.type, 'platform');
 
     const companies = await this.db.client
-      .select()
+      .select({
+        id: companiesTable.id,
+        public_id: companiesTable.public_id,
+        name: companiesTable.name,
+        type: companiesTable.type,
+        country: companiesTable.country,
+        city: companiesTable.city,
+        is_active: companiesTable.is_active,
+        created_at: companiesTable.created_at,
+      })
       .from(companiesTable)
       .where(whereCondition)
       .orderBy(desc(companiesTable.created_at), desc(companiesTable.id))
@@ -52,6 +61,25 @@ export class CompaniesRepository {
     };
   }
 
+  async findByType(companyType: CompanyType, dbOrTx = this.db.client) {
+    const [totalPosts] = await dbOrTx
+      .select({ count: count() })
+      .from(companiesTable)
+      .where(eq(companiesTable.type, companyType));
+
+    return totalPosts.count;
+  }
+
+  async findPublicIdByCid(companyId: number, dbOrTx = this.db.client) {
+    const [company] = await dbOrTx
+      .select({ publicId: companiesTable.public_id })
+      .from(companiesTable)
+      .where(eq(companiesTable.id, companyId))
+      .limit(1);
+
+    return company.publicId;
+  }
+
   async lookup(filters: CompaniesLookupQueryDto): Promise<object> {
     const { type, country } = filters;
     const whereCondition: SQL[] = [];
@@ -76,11 +104,16 @@ export class CompaniesRepository {
     return companies;
   }
 
-  async create(dto: CreateCompanyDto, dbOrTx = this.db.client) {
+  async create(
+    dto: CreateCompanyDto,
+    dbOrTx = this.db.client,
+    publicId: string,
+  ) {
     const [companyId] = await dbOrTx
       .insert(companiesTable)
       .values({
         name: dto.name,
+        public_id: publicId,
         type: dto.type,
         country: dto.location.country,
         city: dto.location.city,

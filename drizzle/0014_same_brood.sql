@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX "national_id_unique" ON "client_passports" USING btree ("national_id");

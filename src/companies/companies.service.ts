@@ -44,8 +44,33 @@ export class CompaniesService {
   }
 
   async create(dto: CreateCompanyDto) {
+    const typeConfigs = {
+      postal: { prefix: 'A01', entity: 'P' },
+      customs_broker: { prefix: 'A02', entity: 'T' },
+      air_partner: { prefix: 'A03', entity: 'S' },
+      airline: { prefix: 'A04', entity: 'L' },
+      platform: { prefix: 'A05', entity: 'F' },
+    };
+
+    const config = typeConfigs[dto.type];
+
     await this.db.client.transaction(async (tx) => {
-      const companyId = await this.companiesRepository.create(dto, tx);
+      const existingCompanies = await this.companiesRepository.findByType(
+        dto.type,
+        tx,
+      );
+
+      const nextNumber = existingCompanies + 1;
+
+      const sequence = String(nextNumber).padStart(3, '0');
+      const generatedPublicId = `${config.prefix}${config.entity}${sequence}`;
+
+      const companyId = await this.companiesRepository.create(
+        dto,
+        tx,
+        generatedPublicId,
+      );
+
       await this.branchesRep.create(
         companyId,
         'Главный филиал',

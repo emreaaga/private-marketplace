@@ -5,176 +5,29 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1769419498894,
-      "tag": "0000_giant_squadron_sinister",
+      "when": 1776954158345,
+      "tag": "0000_mute_thunderbolt",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1769419687199,
-      "tag": "0001_warm_grandmaster",
+      "when": 1776958242729,
+      "tag": "0001_outstanding_jubilee",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1769863429690,
-      "tag": "0002_faulty_thanos",
+      "when": 1776958443761,
+      "tag": "0002_outgoing_rhino",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "7",
-      "when": 1769866934747,
-      "tag": "0003_unknown_arachne",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1770043781564,
-      "tag": "0004_petite_green_goblin",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1770044691391,
-      "tag": "0005_even_zzzax",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1770730817004,
-      "tag": "0006_clammy_gambit",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1770913105672,
-      "tag": "0007_numerous_sage",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1770977129016,
-      "tag": "0008_yielding_triton",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1772100831575,
-      "tag": "0009_fair_puff_adder",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1773140024058,
-      "tag": "0010_spotty_changeling",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1774086990026,
-      "tag": "0011_brainy_ghost_rider",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1774096520079,
-      "tag": "0012_tense_silver_sable",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1774164839803,
-      "tag": "0013_safe_leader",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1774167051801,
-      "tag": "0014_same_brood",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1774347656001,
-      "tag": "0016_pretty_golden_guardian",
-      "breakpoints": true
-    },
-    {
-      "idx": 17,
-      "version": "7",
-      "when": 1774355059757,
-      "tag": "0017_tense_madrox",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1774455362562,
-      "tag": "0018_majestic_doorman",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1774508008301,
-      "tag": "0019_living_stranger",
-      "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "7",
-      "when": 1774602264628,
-      "tag": "0020_special_dexter_bennett",
-      "breakpoints": true
-    },
-    {
-      "idx": 21,
-      "version": "7",
-      "when": 1774613049405,
-      "tag": "0021_milky_scorpion",
-      "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1774685103800,
-      "tag": "0022_overjoyed_omega_sentinel",
-      "breakpoints": true
-    },
-    {
-      "idx": 23,
-      "version": "7",
-      "when": 1774692087101,
-      "tag": "0023_premium_mongu",
-      "breakpoints": true
-    },
-    {
-      "idx": 24,
-      "version": "7",
-      "when": 1774880674696,
-      "tag": "0024_fixed_random",
-      "breakpoints": true
-    },
-    {
-      "idx": 25,
-      "version": "7",
-      "when": 1775316465405,
-      "tag": "0025_perpetual_warbird",
+      "when": 1777038330684,
+      "tag": "0003_freezing_masked_marvel",
       "breakpoints": true
     }
   ]

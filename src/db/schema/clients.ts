@@ -1,13 +1,13 @@
+import { relations } from 'drizzle-orm';
 import {
   integer,
-  pgTable,
-  varchar,
-  timestamp,
   pgEnum,
+  pgTable,
+  timestamp,
+  varchar,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
-import { ordersTable } from './orders';
 import { clientPassportsTable } from './client_passports';
+import { ordersTable } from './orders';
 
 export const clientStatusEnum = pgEnum('client_status', [
   'active',
@@ -17,6 +17,7 @@ export const clientStatusEnum = pgEnum('client_status', [
 
 export const clientsTable = pgTable('clients', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  public_id: varchar('public_id', { length: 10 }).unique(),
 
   name: varchar('name', { length: 255 }).notNull(),
   surname: varchar('surname', { length: 255 }).notNull(),
