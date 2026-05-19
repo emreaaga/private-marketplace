@@ -21,7 +21,6 @@ export class ClientsRepository {
     const clients = await this.db.client
       .select({
         id: clientsTable.id,
-        public_id: clientsTable.public_id,
         name: clientsTable.name,
         surname: clientsTable.surname,
         country: clientsTable.country,
